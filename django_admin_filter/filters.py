@@ -13,8 +13,12 @@ class CustomFilter(admin.SimpleListFilter):
         super().__init__(request, params, model, model_admin)
         self.current_filter = None
         if self.value():
-            self.current_filter = Filter.objects.get(pk=self.value())
-            self.used_parameters.update(self.current_filter.querydict)
+            try:
+                self.current_filter = Filter.objects.get(pk=self.value())
+            except Filter.DoesNotExist:
+                pass
+            else:
+                self.used_parameters.update(self.current_filter.querydict)
 
     def queryset(self, request, queryset):
         return queryset
