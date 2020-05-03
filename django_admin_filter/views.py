@@ -1,6 +1,7 @@
 
 from decimal import Decimal
 
+from django.http import Http404
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.core.exceptions import PermissionDenied
