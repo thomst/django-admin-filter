@@ -21,14 +21,8 @@ class Filter(models.Model):
         ordering = ['-updated']
 
     @property
-    def query(self):
-        query = self.querydict.copy()
-        query['filter_id'] = self.id
-        return query
-
-    @property
     def urlquery(self):
-        return urlencode(self.query)
+        return urlencode(self.querydict)
 
     def is_valid(self, model=None):
         model = model or self.content_type.model_class()
