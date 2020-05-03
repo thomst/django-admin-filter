@@ -27,7 +27,10 @@ class CustomFilter(admin.SimpleListFilter):
         params = dict(content_type__model=model_name, user=request.user)
         persistent = Filter.objects.filter(persistent=True, **params)
         history = Filter.objects.filter(persistent=False, **params)
-        return list(persistent) + list(history)
+        history_limit = getattr(settings, 'ADMIN_FILTER_HISTORY_LIMIT', 5)
+        recent = history[:history_limit]
+        history.exclude(id__in=[f.id for f in recent]).delete()
+        return list(persistent) + list(recent)
 
     def get_query_string(self, filter):
         add = filter.querydict
