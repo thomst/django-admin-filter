@@ -49,6 +49,7 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
     template_name = 'django_admin_filter/filter_query.html'
     model = Filter
     fields = ['name', 'description']
+    object = None
 
     @setup
     @permission_required
