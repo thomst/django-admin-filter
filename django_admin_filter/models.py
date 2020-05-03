@@ -28,8 +28,16 @@ class Filter(models.Model):
             now = timezone.localtime().strftime('%x %X')
             self.name = _('Filter from ') + now
         if not self.description:
-            self.description = repr(self.querydict)
+            self.description = self.pretty_query
         super().save(*args, **kwargs)
+
+    @property
+    def pretty_query(self):
+        lines = list()
+        for key in sorted(self.querydict.keys()):
+            line = '{} = {}'.format(key, self.querydict[key])
+            lines.append(line)
+        return '\n'.join(lines)
 
     @property
     def urlquery(self):
