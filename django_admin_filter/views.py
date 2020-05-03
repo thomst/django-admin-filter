@@ -2,6 +2,7 @@
 from decimal import Decimal
 
 from django.http import Http404
+from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.core.exceptions import PermissionDenied
@@ -52,6 +53,14 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
     model = Filter
     form_class = FilterForm
     object = None
+
+    @permission_required
+    def delete(self, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.user == self.request.user:
+            raise PermissionDenied
+        self.object.delete()
+        return JsonResponse(dict())
 
     @setup
     @permission_required

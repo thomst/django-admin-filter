@@ -14,8 +14,10 @@
 {% if persistent %}
     <li><h3 style="padding-left:0">{% trans "Filter" %}</h3></li>
     {% for choice in persistent %}
-        <li{% if choice.selected %} class="selected"{% endif %}>
-        <a href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a></li>
+        <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
+            <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
+            <a class="async-filter-delete" style="display:inline;" href="{{choice.delete_path}}">✖</a>
+        </li>
     {% endfor %}
 {% endif %}
 {% if history %}
@@ -28,3 +30,20 @@
 {% endwith %}
 {% endif %}
 </ul>
+<script>
+(function($) {
+$( document ).ready(function() {
+    var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
+    $('.async-filter-delete').click(function(e) {
+        var a = this
+        $.ajax({
+            url: a.href,
+            type: 'DELETE',
+            headers: { 'X-CSRFToken': csrfmiddlewaretoken },
+            success: function() { $(a).parent().remove() }
+        });
+        e.preventDefault();
+    });
+})
+})(django.jQuery);
+</script>

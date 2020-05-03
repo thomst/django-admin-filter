@@ -58,5 +58,6 @@ class CustomFilter(admin.SimpleListFilter):
             yield {
                 'selected': self.current_filter and self.current_filter.id == filter.id,
                 'query_string': changelist.get_query_string(add, remove),
+                'delete_path': 'c/filter/{}'.format(filter.id),
                 'filter': filter,
             }
