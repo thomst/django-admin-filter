@@ -1,0 +1,30 @@
+{% load i18n django_admin_filter %}
+<h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
+<ul>
+<li>
+    <a href="c/filter" title="{% trans "Create a new filter" %}">{% trans "New filter" %}</a>
+</li>
+{% if choices %}
+{% for choice in choices|slice:":1" %}
+    <li{% if choice.selected %} class="selected"{% endif %}>
+        <a href="{{ choice.query_string|iriencode }}" title="{{ choice.display }}">{{ choice.display }}</a>
+    </li>
+{% endfor %}
+{% with persistent=choices|persistent history=choices|history %}
+{% if persistent %}
+    <li><h3 style="padding-left:0">{% trans "Filter" %}</h3></li>
+    {% for choice in persistent %}
+        <li{% if choice.selected %} class="selected"{% endif %}>
+        <a href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a></li>
+    {% endfor %}
+{% endif %}
+{% if history %}
+    <li><h3 style="padding-left:0">{% trans "History" %}</h3></li>
+    {% for choice in history %}
+        <li{% if choice.selected %} class="selected"{% endif %}>
+        <a href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a></li>
+    {% endfor %}
+{% endif %}
+{% endwith %}
+{% endif %}
+</ul>

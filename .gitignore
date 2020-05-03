@@ -1,0 +1,9 @@
+__pycache__/
+.python-version
+.coverage
+.coveralls.yml
+db.sqlite3*
+/django_admin_filter.egg-info/
+/build/
+/dist/
+/.tox/
