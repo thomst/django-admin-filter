@@ -1,3 +1,4 @@
+import re
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.contrib import admin
@@ -11,6 +12,8 @@ class CustomFilter(admin.SimpleListFilter):
 
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
+        csrftoken = re.findall(r'csrftoken=(\w+)', request.headers['Cookie'])
+        self.csrftoken = csrftoken[0] if csrftoken else None
         self.current_filter = None
         if self.value():
             try:
@@ -59,5 +62,6 @@ class CustomFilter(admin.SimpleListFilter):
                 'selected': self.current_filter and self.current_filter.id == filter.id,
                 'query_string': changelist.get_query_string(add, remove),
                 'delete_path': 'c/filter/{}'.format(filter.id),
+                'csrftoken': self.csrftoken,
                 'filter': filter,
             }

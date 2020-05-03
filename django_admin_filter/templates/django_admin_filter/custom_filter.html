@@ -16,7 +16,7 @@
     {% for choice in persistent %}
         <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
             <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
-            <a class="async-filter-delete" style="display:inline;" href="{{choice.delete_path}}">✖</a>
+            <a class="async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{{choice.delete_path}}">✖</a>
         </li>
     {% endfor %}
 {% endif %}
@@ -33,13 +33,12 @@
 <script>
 (function($) {
 $( document ).ready(function() {
-    var csrfmiddlewaretoken = $('input[name=csrfmiddlewaretoken]').val();
     $('.async-filter-delete').click(function(e) {
-        var a = this
+        var a = this;
         $.ajax({
             url: a.href,
             type: 'DELETE',
-            headers: { 'X-CSRFToken': csrfmiddlewaretoken },
+            headers: { 'X-CSRFToken': a.getAttribute("data-csrftoken") },
             success: function() { $(a).parent().remove() }
         });
         e.preventDefault();
