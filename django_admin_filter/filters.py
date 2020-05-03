@@ -11,10 +11,10 @@ class CustomFilter(admin.SimpleListFilter):
 
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
+        self.current_filter = None
         if self.value():
-            self.filter = Filter.objects.get(pk=self.value())
-        else:
-            self.filter = None
+            self.current_filter = Filter.objects.get(pk=self.value())
+            self.used_parameters.update(self.current_filter.querydict)
 
     def queryset(self, request, queryset):
         return queryset
@@ -29,17 +29,27 @@ class CustomFilter(admin.SimpleListFilter):
         history = Filter.objects.filter(persistent=False, **params)
         return list(persistent) + list(history)
 
+    def get_query_string(self, filter):
+        add = filter.querydict
+        add[self.parameter_name] = filter.id
+        remove = set()
+        if self.current_filter and not self.current_filter.id == filter.id:
+            remove = set(self.current_filter.querydict.keys())
+            remove -= set(filter.querydict.keys())
+        return add, list(remove)
+
     def choices(self, changelist):
         if self.lookup_choices:
-            remove = self.filter.query.keys() if self.filter else list()
+            remove = self.used_parameters.keys()
             yield {
-                'selected': self.value() is None,
+                'selected': not self.used_parameters,
                 'query_string': changelist.get_query_string(remove=remove),
                 'display': _('All'),
             }
         for filter in self.lookup_choices:
+            add, remove = self.get_query_string(filter)
             yield {
-                'selected': self.value() == str(filter.id),
-                'query_string': changelist.get_query_string(filter.query),
+                'selected': self.current_filter and self.current_filter.id == filter.id,
+                'query_string': changelist.get_query_string(add, remove),
                 'filter': filter,
             }
