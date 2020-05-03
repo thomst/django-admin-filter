@@ -14,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
 from .filterset import REGISTRY
 from .models import Filter
+from .forms import FilterForm
 
 
 def permission_required(func):
@@ -48,7 +49,7 @@ def setup(func):
 class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
     template_name = 'django_admin_filter/filter_query.html'
     model = Filter
-    fields = ['name', 'description']
+    form_class = FilterForm
     object = None
 
     @setup

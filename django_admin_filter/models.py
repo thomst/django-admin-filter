@@ -1,5 +1,8 @@
+from datetime import datetime
 from urllib.parse import urlencode
 from jsonfield import JSONField
+from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
@@ -19,6 +22,14 @@ class Filter(models.Model):
 
     class Meta:
         ordering = ['-updated']
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            now = timezone.localtime().strftime('%x %X')
+            self.name = _('Filter from ') + now
+        if not self.description:
+            self.description = repr(self.querydict)
+        super().save(*args, **kwargs)
 
     @property
     def urlquery(self):
