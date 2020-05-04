@@ -13,14 +13,12 @@ class CustomFilter(admin.SimpleListFilter):
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
         self.csrftoken = self.get_csrftoken(request)
-        self.current_filter = None
-        if self.value():
-            try:
-                self.current_filter = Filter.objects.get(pk=self.value())
-            except Filter.DoesNotExist:
-                pass
-            else:
-                self.used_parameters.update(self.current_filter.querydict)
+        try:
+            self.current_filter = Filter.objects.get(pk=self.value())
+        except Filter.DoesNotExist:
+            self.current_filter = None
+        else:
+            self.used_parameters.update(self.current_filter.querydict)
 
     def get_csrftoken(self, request):
         if settings.CSRF_USE_SESSIONS:
