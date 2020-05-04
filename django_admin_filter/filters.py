@@ -12,8 +12,7 @@ class CustomFilter(admin.SimpleListFilter):
 
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
-        csrftoken = re.findall(r'csrftoken=(\w+)', request.headers['Cookie'])
-        self.csrftoken = csrftoken[0] if csrftoken else None
+        self.csrftoken = self.get_csrftoken(request)
         self.current_filter = None
         if self.value():
             try:
@@ -22,6 +21,14 @@ class CustomFilter(admin.SimpleListFilter):
                 pass
             else:
                 self.used_parameters.update(self.current_filter.querydict)
+
+    def get_csrftoken(self, request):
+        if settings.CSRF_USE_SESSIONS:
+            return request.session['_csrftoken']
+        elif 'csrftoken' in request.headers.get('Cookie', str()):
+            return re.findall(r'csrftoken=(\w+)', request.headers['Cookie'])[0]
+        else:
+            return csrftoken
 
     def queryset(self, request, queryset):
         return queryset
