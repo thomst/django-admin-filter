@@ -1,4 +1,5 @@
 
+import html.parser
 from decimal import Decimal
 
 from django.http import Http404
@@ -79,9 +80,11 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
             return self.form_invalid(form, query_form)
 
     def get_querydict(self, query_form):
+        unescape = h = html.parser.HTMLParser().unescape
         empty = lambda v: v is str() or v is None
+        prepare = lambda v: unescape(v) if isinstance(v, str) else v
         data = query_form.cleaned_data
-        querydict = dict((k, v) for k, v in data.items() if not empty(v))
+        querydict = dict((k, prepare(v)) for k, v in data.items() if not empty(v))
 
         # FIXME: The django-filter does not differenciate decimals and integers.
         # That means all numbers come as decimals from the filter-forms and the
