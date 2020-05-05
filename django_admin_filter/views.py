@@ -20,7 +20,46 @@ from .models import Filter
 from .forms import FilterForm
 
 
+def is_empty(value):
+    """
+    Filter out those form-fields without any input-data.
+    """
+    return value is str() or value is None or value == list()
+
+
+
+def prepare_value(value):
+    """
+    Prepare the values coming from a filter-form.
+    """
+    # The cleaned_data provides special unicode characters as html-escaped.
+    if isinstance(value, str):
+        parser = html.parser.HTMLParser()
+        return parser.unescape(value)
+    # For any reason the django-filter's form provides all numbers as decimals -
+    # even for IntegerFields. The queryset-object doesn't seem to be bothered
+    # by decimals as filter-values. But the admin-changelist doesn't accept them
+    # in the url-query.
+    # This should be fixed in django-filter though.
+    elif isinstance(value, Decimal) and value % 1 == 0:
+        return int(value)
+    else:
+        return value
+
+
+def get_querydict(queryform):
+    """
+    Get the querydict from a filter-form.
+    """
+    data = queryform.cleaned_data
+    querydict = dict((k, prepare_value(v)) for k, v in data.items() if not is_empty(v))
+    return querydict
+
+
 def permission_required(func):
+    """
+    Decorator for view-methods to check permission to view the filtered items.
+    """
     def wrapper(self, request, **kwargs):
         permission = '{app_label}.view_{model}'.format(**kwargs)
         if not request.user.has_perm(permission):
@@ -30,6 +69,9 @@ def permission_required(func):
 
 
 def setup(func):
+    """
+    Extract the contenttype from url-paramerters and setup the filter-class.
+    """
     def wrapper(self, request, **kwargs):
         try:
             self.content_type = ContentType.objects.get(**kwargs)
@@ -50,6 +92,9 @@ def setup(func):
 
 
 class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
+    """
+    View to add and delete Filters.
+    """
     template_name = 'django_admin_filter/filter_query.html'
     model = Filter
     form_class = FilterForm
@@ -79,27 +124,9 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
         else:
             return self.form_invalid(form, query_form)
 
-    def get_querydict(self, query_form):
-        unescape = h = html.parser.HTMLParser().unescape
-        empty = lambda v: v is str() or v is None
-        prepare = lambda v: unescape(v) if isinstance(v, str) else v
-        data = query_form.cleaned_data
-        querydict = dict((k, prepare(v)) for k, v in data.items() if not empty(v))
-
-        # FIXME: The django-filter does not differenciate decimals and integers.
-        # That means all numbers come as decimals from the filter-forms and the
-        # JSONField serializes each with an extra decimal-place. Used as params
-        # the queryset filter-method works fine. But a decimal coming from as
-        # urlquery won't work in django's changelists.
-        # The long-term-fix would be a pull-request to django-filter.
-        for k, v in querydict.copy().items():
-            if isinstance(v, Decimal) and v % 1 == 0:
-                querydict[k] = int(v)
-        return querydict
-
     def form_valid(self, form, query_form):
         self.object = form.save(commit=False)
-        self.object.querydict = self.get_querydict(query_form)
+        self.object.querydict = get_querydict(query_form)
         self.object.content_type = self.content_type
         self.object.persistent = 'save' in self.request.POST
         self.object.user = self.request.user
