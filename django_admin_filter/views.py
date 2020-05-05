@@ -109,7 +109,8 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
 
     def get_success_url(self):
         url_pattern = 'admin:{app_label}_{model}_changelist'
-        url = reverse(url_pattern.format(**self.kwargs)) + '?' + self.object.urlquery
+        query = '?filter_id={}&{}'.format(self.object.id, self.object.urlquery)
+        url = reverse(url_pattern.format(**self.kwargs)) + query
         return url
 
     def get_query_form(self):
