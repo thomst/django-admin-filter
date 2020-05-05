@@ -1,4 +1,3 @@
-from datetime import datetime
 from urllib.parse import urlencode
 from jsonfield import JSONField
 from django.utils import timezone
@@ -25,7 +24,10 @@ class Filter(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.name:
-            now = timezone.localtime().strftime('%x %X')
+            if settings.USE_TZ:
+                now = timezone.localtime().strftime('%x %X')
+            else:
+                now = timezone.now().strftime('%x %X')
             self.name = _('Filter from ') + now
         if not self.description:
             self.description = self.pretty_query
