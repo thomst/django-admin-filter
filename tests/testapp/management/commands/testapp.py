@@ -7,7 +7,9 @@ from django.core.management.base import CommandError
 from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 
+from ...models import FIELDS
 from ...models import ModelA
+from ...models import UNICODE_STRING
 
 
 def create_test_data():
@@ -19,11 +21,17 @@ def create_test_data():
     except IntegrityError:
         pass
 
-    for i in range(7):
+    User.objects.get_or_create(
+        username='anyuser',
+        is_active=True,
+        is_staff=True,
+        password='anyuserpassword'
+    )
+
+    for i in range(9):
         ma = ModelA()
-        ma.first = i
-        ma.second = i * 2
-        ma.third = i * 3
+        for field, data in FIELDS.items():
+            setattr(ma, field, data['value'](i))
         ma.save()
 
 

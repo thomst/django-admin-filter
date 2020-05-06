@@ -8,5 +8,5 @@ from .filters import ModelAFilter
 
 @admin.register(ModelA)
 class ModelAAdmin(admin.ModelAdmin):
-    list_display = ('first', 'second', 'third')
-    list_filter = (CustomFilter,)
+    list_display = [f.name for f in ModelA._meta.get_fields()]
+    list_filter = [CustomFilter] + [f.name for f in ModelA._meta.get_fields()]
