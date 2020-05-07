@@ -60,7 +60,6 @@ class CustomFilter(admin.SimpleListFilter):
             yield {
                 'selected': self.current_query and self.current_query.id == query.id,
                 'query_string': changelist.get_query_string(dict(filter_id=query.id)),
-                'delete_path': '{}/{}/'.format(app_settings.URL_PATH, query.id),
                 'csrftoken': self.csrftoken,
                 'filter': query,
             }

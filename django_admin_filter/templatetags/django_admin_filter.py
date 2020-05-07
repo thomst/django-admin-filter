@@ -7,7 +7,7 @@ register = Library()
 
 
 @register.simple_tag
-def url_path():
+def urlpath():
     return settings.URL_PATH
 
 
