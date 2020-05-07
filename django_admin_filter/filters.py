@@ -22,11 +22,11 @@ class CustomFilter(admin.SimpleListFilter):
 
     def get_csrftoken(self, request):
         if settings.CSRF_USE_SESSIONS:
-            return request.session['_csrftoken']
+            return request.session.get('_csrftoken')
         elif 'csrftoken' in request.headers.get('Cookie', str()):
             return re.findall(r'csrftoken=(\w+)', request.headers['Cookie'])[0]
         else:
-            return csrftoken
+            return None
 
     def queryset(self, request, queryset):
         if not self.current_query:
