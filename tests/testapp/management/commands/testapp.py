@@ -4,9 +4,11 @@ from datetime import timedelta
 
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
+from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 
+from django_admin_filter.models import FilterQuery
 from ...models import FIELDS
 from ...models import ModelA
 from ...models import UNICODE_STRING
@@ -28,11 +30,26 @@ def create_test_data():
         password='anyuserpassword'
     )
 
+    # create some model-items
     for i in range(9):
         ma = ModelA()
         for field, data in FIELDS.items():
             setattr(ma, field, data['value'](i))
         ma.save()
+
+    # create some simple filterqueries
+    content_type = ContentType.objects.get(model=ModelA.__name__.lower())
+    for i in range(9):
+        fq = FilterQuery()
+        fq.name = 'Filter {}'.format(i + 1)
+        fq.user = User.objects.get(username='admin')
+        fq.content_type = content_type
+        fq.querydict = dict(auto=i+1)
+        fq.persistent = True if i < 3 else False
+        try:
+            fq.save()
+        except IntegrityError:
+            pass
 
 
 class Command(BaseCommand):
