@@ -39,7 +39,11 @@ $( document ).ready(function() {
             url: a.href,
             type: 'DELETE',
             headers: { 'X-CSRFToken': a.getAttribute("data-csrftoken") },
-            success: function() { $(a).parent().remove() }
+            dataType: 'json',
+            success: function() { $(a).parent().remove() },
+            error: function(xhr, msg, exp) {
+                console.log('Something went wrong: ' + msg)
+            },
         });
         e.preventDefault();
     });
