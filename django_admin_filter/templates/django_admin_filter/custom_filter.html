@@ -2,7 +2,7 @@
 <h3>{% blocktrans with filter_title=title %} By {{ filter_title }} {% endblocktrans %}</h3>
 <ul>
 <li>
-    <a href="c/filter" title="{% trans "Create a new filter" %}">{% trans "New filter" %}</a>
+    <a href="{% url_path %}/" title="{% trans "Create a new filter" %}">{% trans "New filter" %}</a>
 </li>
 {% if choices %}
 {% for choice in choices|slice:":1" %}

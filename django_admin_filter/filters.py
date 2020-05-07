@@ -2,6 +2,8 @@ import re
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.contrib import admin
+
+from . import settings as app_settings
 from .filterset import AdminFilterSet
 from .models import FilterQuery
 
@@ -42,8 +44,7 @@ class CustomFilter(admin.SimpleListFilter):
         params = dict(content_type__model=model_name, user=request.user)
         persistent = FilterQuery.objects.filter(persistent=True, **params)
         history = FilterQuery.objects.filter(persistent=False, **params)
-        history_limit = getattr(settings, 'ADMIN_FILTER_HISTORY_LIMIT', 5)
-        recent = history[:history_limit]
+        recent = history[:app_settings.HISTORY_LIMIT]
         history.exclude(id__in=[f.id for f in recent]).delete()
         return list(persistent) + list(recent)
 
@@ -59,7 +60,7 @@ class CustomFilter(admin.SimpleListFilter):
             yield {
                 'selected': self.current_query and self.current_query.id == query.id,
                 'query_string': changelist.get_query_string(dict(filter_id=query.id)),
-                'delete_path': 'c/filter/{}'.format(query.id),
+                'delete_path': '{}/{}/'.format(app_settings.URL_PATH, query.id),
                 'csrftoken': self.csrftoken,
                 'filter': query,
             }

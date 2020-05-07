@@ -1,8 +1,14 @@
 # -*- coding: utf-8 -*-
 from django.template import Library
+from .. import settings
 
 
 register = Library()
+
+
+@register.simple_tag
+def url_path():
+    return settings.URL_PATH
 
 
 @register.filter
