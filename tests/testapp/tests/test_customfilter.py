@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
 
+from django_admin_filter import apps
 from django_admin_filter import settings as app_settings
 from django_admin_filter.filters import CustomFilter
 from django_admin_filter.views import FilterQueryView
@@ -105,6 +106,7 @@ class FilterViewTest(TestCase):
             field_data[field] = str()
 
         # Create one filter-query using 'save' and without name-parameter:
+        # TODO: check name-generation with USE_TZ=True
         post_data = field_data.copy()
         post_data['save'] = True
         response = self.client.post(url, data=post_data, follow=True)
@@ -114,6 +116,7 @@ class FilterViewTest(TestCase):
         self.assertTrue(fq.persistent)
 
         # create other filter-queries using 'apply' and check their description
+        # TODO: create some real filter-values, not only numbers
         post_data = field_data.copy()
         post_data['apply'] = True
         description = list()
