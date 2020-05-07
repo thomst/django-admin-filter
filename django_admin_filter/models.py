@@ -10,7 +10,7 @@ from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
 
 
-class Filter(models.Model):
+class FilterQuery(models.Model):
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     persistent = models.BooleanField(default=False)
@@ -44,12 +44,3 @@ class Filter(models.Model):
     @property
     def urlquery(self):
         return urlencode(self.querydict)
-
-    def is_valid(self, model=None):
-        model = model or self.content_type.model_class()
-        try:
-            model.objects.filter(**self.querydict)
-        except (FieldError, ValidationError) as err:
-            return False
-        else:
-            return True

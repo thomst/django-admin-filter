@@ -1,4 +1,3 @@
-
 import html.parser
 from decimal import Decimal
 
@@ -15,45 +14,9 @@ from django.views.generic.edit import BaseCreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
-from .filterset import REGISTRY
-from .models import Filter
+from .filterset import AdminFilterSet
+from .models import FilterQuery
 from .forms import FilterForm
-
-
-def is_empty(value):
-    """
-    Filter out those form-fields without any input-data.
-    """
-    return value is str() or value is None or value == list()
-
-
-
-def prepare_value(value):
-    """
-    Prepare the values coming from a filter-form.
-    """
-    # The cleaned_data provides special unicode characters as html-escaped.
-    if isinstance(value, str):
-        parser = html.parser.HTMLParser()
-        return parser.unescape(value)
-    # For any reason the django-filter's form provides all numbers as decimals -
-    # even for IntegerFields. The queryset-object doesn't seem to be bothered
-    # by decimals as filter-values. But the admin-changelist doesn't accept them
-    # in the url-query.
-    # This should be fixed in django-filter though.
-    elif isinstance(value, Decimal) and value % 1 == 0:
-        return int(value)
-    else:
-        return value
-
-
-def get_querydict(queryform):
-    """
-    Get the querydict from a filter-form.
-    """
-    data = queryform.cleaned_data
-    querydict = dict((k, prepare_value(v)) for k, v in data.items() if not is_empty(v))
-    return querydict
 
 
 def permission_required(func):
@@ -81,23 +44,19 @@ def setup(func):
             ))
         else:
             ct_model = self.content_type.model_class()
-        try:
-            self.filter_class = REGISTRY[ct_model]
-        except KeyError:
-            raise ImproperlyConfigured(_(
-                "Missing filter-class for Model '{model}'".format(**kwargs)
-            ))
+            self.filterset_class = AdminFilterSet.by_model(ct_model)
         return func(self, request, **kwargs)
     return wrapper
 
 
-class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
+class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
     """
     View to add and delete Filters.
     """
     template_name = 'django_admin_filter/filter_query.html'
-    model = Filter
+    model = FilterQuery
     form_class = FilterForm
+    prefix = 'query'
     object = None
 
     @permission_required
@@ -124,9 +83,19 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
         else:
             return self.form_invalid(form, query_form)
 
+    def get_querydict(self):
+        # TODO: Filter out FILTERS_NULL_CHOICE_VALUE for ChoiceFilter and
+        # 'unknown' for BooleanFields.
+        field_names = self.filterset_class().form.fields.keys()
+        querydict = dict(
+            (k, v) for k, v in self.request.POST.items()
+            if k in field_names and not v is str()
+        )
+        return querydict
+
     def form_valid(self, form, query_form):
         self.object = form.save(commit=False)
-        self.object.querydict = get_querydict(query_form)
+        self.object.querydict = self.get_querydict()
         self.object.content_type = self.content_type
         self.object.persistent = 'save' in self.request.POST
         self.object.user = self.request.user
@@ -139,7 +108,7 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
 
     def get_success_url(self):
         url_pattern = 'admin:{app_label}_{model}_changelist'
-        query = '?filter_id={}&{}'.format(self.object.id, self.object.urlquery)
+        query = '?filter_id={}'.format(self.object.id)
         url = reverse(url_pattern.format(**self.kwargs)) + query
         return url
 
@@ -148,7 +117,7 @@ class FilterView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
             data = self.request.POST
         else:
             data = dict()
-        filter = self.filter_class(data, prefix='query')
+        filter = self.filterset_class(data)
         return filter.form
 
     def get_context_data(self, **kwargs):

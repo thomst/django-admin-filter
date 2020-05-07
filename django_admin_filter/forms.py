@@ -1,5 +1,5 @@
 from django import forms
-from .models import Filter
+from .models import FilterQuery
 
 
 class FilterForm(forms.ModelForm):
@@ -19,5 +19,5 @@ class FilterForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Filter
+        model = FilterQuery
         fields = ['name', 'description']

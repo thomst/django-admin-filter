@@ -2,7 +2,8 @@ import re
 from django.utils.translation import gettext as _
 from django.conf import settings
 from django.contrib import admin
-from .models import Filter
+from .filterset import AdminFilterSet
+from .models import FilterQuery
 
 
 class CustomFilter(admin.SimpleListFilter):
@@ -13,12 +14,11 @@ class CustomFilter(admin.SimpleListFilter):
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
         self.csrftoken = self.get_csrftoken(request)
+        self.filterset_class = AdminFilterSet.by_model(model)
         try:
-            self.current_filter = Filter.objects.get(pk=self.value())
-        except Filter.DoesNotExist:
-            self.current_filter = None
-        else:
-            self.used_parameters.update(self.current_filter.querydict)
+            self.current_query = FilterQuery.objects.get(pk=self.value())
+        except FilterQuery.DoesNotExist:
+            self.current_query = None
 
     def get_csrftoken(self, request):
         if settings.CSRF_USE_SESSIONS:
@@ -29,7 +29,10 @@ class CustomFilter(admin.SimpleListFilter):
             return csrftoken
 
     def queryset(self, request, queryset):
-        return queryset
+        if not self.current_query:
+            return queryset
+
+        return self.filterset_class(self.current_query.querydict, queryset).qs
 
     def has_output(self):
         return True
@@ -37,21 +40,12 @@ class CustomFilter(admin.SimpleListFilter):
     def lookups(self, request, model_admin):
         model_name = model_admin.model.__name__.lower()
         params = dict(content_type__model=model_name, user=request.user)
-        persistent = Filter.objects.filter(persistent=True, **params)
-        history = Filter.objects.filter(persistent=False, **params)
+        persistent = FilterQuery.objects.filter(persistent=True, **params)
+        history = FilterQuery.objects.filter(persistent=False, **params)
         history_limit = getattr(settings, 'ADMIN_FILTER_HISTORY_LIMIT', 5)
         recent = history[:history_limit]
         history.exclude(id__in=[f.id for f in recent]).delete()
         return list(persistent) + list(recent)
-
-    def get_query_string(self, filter):
-        add = filter.querydict
-        add[self.parameter_name] = filter.id
-        remove = set()
-        if self.current_filter and not self.current_filter.id == filter.id:
-            remove = set(self.current_filter.querydict.keys())
-            remove -= set(filter.querydict.keys())
-        return add, list(remove)
 
     def choices(self, changelist):
         if self.lookup_choices:
@@ -61,12 +55,11 @@ class CustomFilter(admin.SimpleListFilter):
                 'query_string': changelist.get_query_string(remove=remove),
                 'display': _('All'),
             }
-        for filter in self.lookup_choices:
-            add, remove = self.get_query_string(filter)
+        for query in self.lookup_choices:
             yield {
-                'selected': self.current_filter and self.current_filter.id == filter.id,
-                'query_string': changelist.get_query_string(add, remove),
-                'delete_path': 'c/filter/{}'.format(filter.id),
+                'selected': self.current_query and self.current_query.id == query.id,
+                'query_string': changelist.get_query_string(dict(filter_id=query.id)),
+                'delete_path': 'c/filter/{}'.format(query.id),
                 'csrftoken': self.csrftoken,
-                'filter': filter,
+                'filter': query,
             }
