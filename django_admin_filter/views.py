@@ -56,7 +56,7 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
     template_name = 'django_admin_filter/filter_query.html'
     model = FilterQuery
     form_class = FilterForm
-    prefix = 'query'
+    prefix = 'fq'
     object = None
 
     @permission_required
@@ -64,8 +64,9 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
         self.object = self.get_object()
         if not self.object.user == self.request.user:
             raise PermissionDenied
+        response = dict(id=self.object.id)
         self.object.delete()
-        return JsonResponse(dict())
+        return JsonResponse(response)
 
     @setup
     @permission_required
