@@ -3,9 +3,10 @@ import re
 
 from django.test import TestCase
 from django.test import Client
-from django.contrib.auth.models import User
 from django.urls import reverse
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.models import ContentType
 
 from django_admin_filter import apps
 from django_admin_filter import settings as app_settings
@@ -44,8 +45,12 @@ class FilterViewTest(TestCase):
         self.admin = User.objects.get(username='admin')
         self.client.force_login(self.admin)
         self.url = reverse('admin:testapp_modela_changelist')
-        self.persistents = list(FilterQuery.objects.filter(persistent=True))
-        self.history = list(FilterQuery.objects.filter(persistent=False))
+        self.fq_url = '{}{}'.format(self.url, app_settings.URL_PATH)
+        content_type = ContentType.objects.get(model=ModelA.__name__.lower())
+        self.fq_params = dict(user=self.admin, content_type=content_type)
+        self.queryset = FilterQuery.objects.filter(**self.fq_params)
+        self.persistents = self.queryset.filter(persistent=True)
+        self.history = self.queryset.filter(persistent=False)
         self.queryfields = list()
         for field, data in FIELDS.items():
             self.queryfields.append(field)
@@ -58,14 +63,14 @@ class FilterViewTest(TestCase):
         content = response.content.decode('utf-8')
         self.assertIn(CustomFilter.title, content)
         self.assertIn('href="{}"'.format(app_settings.URL_PATH), content)
-        for fq in self.persistents:
+        for fq in self.persistents.all():
             self.assertIn(fq.name, content)
             self.assertIn(fq.description, content)
             self.assertIn('{}{}/'.format(app_settings.URL_PATH, fq.id), content)
-        for fq in self.history[:app_settings.HISTORY_LIMIT]:
+        for fq in self.history.all()[:app_settings.HISTORY_LIMIT]:
             self.assertIn(fq.name, content)
             self.assertIn(fq.description, content)
-        for fq in self.history[app_settings.HISTORY_LIMIT:]:
+        for fq in self.history.all()[app_settings.HISTORY_LIMIT:]:
             self.assertNotIn(fq.name, content)
 
     def test_01_custom_filter_form(self):
@@ -77,60 +82,67 @@ class FilterViewTest(TestCase):
             response = self.client.get(self.url)
             self.check_content(response)
 
-        for i in [2, 1, 0]:
-            with AlterAppSettings(HISTORY_LIMIT=i):
+        for i in range(3):
+            with AlterAppSettings(HISTORY_LIMIT=i, TRUNCATE_HISTORY=False):
                 response = self.client.get(self.url)
                 self.check_content(response)
 
     def test_02_filter_deletion(self):
-        fq = self.persistents[0]
-        url = '{}{}{}/'.format(self.url, app_settings.URL_PATH, fq.id)
+        fq = self.persistents.all()[0]
+        url = '{}{}/'.format(self.fq_url, fq.id)
         response = self.client.delete(url)
         self.assertEqual(response.status_code, 200)
         self.assertRaises(FilterQuery.DoesNotExist, FilterQuery.objects.get, pk=fq.id)
 
-    def test_03_get_filterquery_form(self):
-        url = '{}{}'.format(self.url, app_settings.URL_PATH)
-        response = self.client.get(url)
+    def test_03_create_filterquery(self):
+        # check name-generation with and without timezone-awareness
+        for bool in [True, False]:
+            with self.settings(USE_TZ=bool):
+                fq = FilterQuery(**self.fq_params)
+                fq.save()
+                self.assertTrue(re.match(r'^Filter from [0-9/-: ]+$', fq.name))
+
+        # check description-generation
+        description = list()
+        querydict = dict()
+        for index, field in enumerate(self.queryfields):
+            querydict[field] = str(index)
+            description.append('{} = {}'.format(field, index))
+            fq = FilterQuery(**self.fq_params, querydict=querydict)
+            fq.save()
+            for line in description:
+                self.assertIn(line, fq.description)
+
+        # check history-truncation
+        with AlterAppSettings(TRUNCATE_HISTORY=True):
+            for i in range(3):
+                fq = FilterQuery(**self.fq_params)
+                fq.save()
+                history = self.history.all()
+                self.assertEqual(len(history), app_settings.HISTORY_LIMIT)
+
+    def test_04_get_filterquery_form(self):
+        response = self.client.get(self.fq_url)
         content = response.content.decode('utf-8')
         self.assertEqual(response.status_code, 200)
         for field_name in self.queryfields:
             self.assertIn(field_name, content)
 
-    def test_04_create_filterquery(self):
-        url = '{}{}'.format(self.url, app_settings.URL_PATH)
-        field_data = dict()
+    def test_05_post_filterquery_form(self):
 
         # setup field-data for form-fields
-        for field in self.queryfields:
-            field_data[field] = str()
+        base_post_data = dict()
+        for index, field in enumerate(self.queryfields[:9]):
+            # FIXME: Pass some real data, not only str(index)
+            base_post_data[field] = str(index)
 
-        # Create one filter-query using 'save' and without name-parameter:
-        # TODO: check name-generation with USE_TZ=True
-        post_data = field_data.copy()
-        post_data['save'] = True
-        response = self.client.post(url, data=post_data, follow=True)
-        self.assertEqual(response.status_code, 200)
-        name_pattern = r'^Filter from [0-9/: ]+$'
-        fq = FilterQuery.objects.get(name__regex=name_pattern)
-        self.assertTrue(fq.persistent)
-
-        # create other filter-queries using 'apply' and check their description
-        # TODO: create some real filter-values, not only numbers
-        post_data = field_data.copy()
-        post_data['apply'] = True
-        description = list()
-        name_field = '{}-name'.format(FilterQueryView.prefix)
-        for i in range(1, 6):
-            name = 'TestFilter ' + str(i)
-            description.append('{} = {}'.format(self.queryfields[i], i))
-            post_data[name_field] = name
-            post_data[self.queryfields[i]] = str(i)
-            response = self.client.post(url, data=post_data, follow=True)
+        # create persistent filter using 'save'
+        for action in ['save', 'apply']:
+            post_data = base_post_data.copy()
+            post_data[action] = True
+            response = self.client.post(self.fq_url, data=post_data, follow=True)
             self.assertEqual(response.status_code, 200)
-            fq = FilterQuery.objects.get(name=name)
+            fq = FilterQuery.objects.latest('created')
             redirect_url = '{}?filter_id={}'.format(self.url, fq.id)
             self.assertEqual(response.redirect_chain[0][0], redirect_url)
-            self.assertFalse(fq.persistent)
-            for line in description:
-                self.assertIn(line, fq.description)
+            self.assertTrue(fq.persistent == (action is 'save'))

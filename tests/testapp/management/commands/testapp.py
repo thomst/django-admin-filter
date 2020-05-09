@@ -9,6 +9,7 @@ from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
 
 from django_admin_filter.models import FilterQuery
+from django_admin_filter.settings import HISTORY_LIMIT
 from ...models import FIELDS
 from ...models import ModelA
 from ...models import UNICODE_STRING
@@ -39,17 +40,14 @@ def create_test_data():
 
     # create some simple filterqueries
     content_type = ContentType.objects.get(model=ModelA.__name__.lower())
-    for i in range(9):
+    for i in range(3 + HISTORY_LIMIT):
         fq = FilterQuery()
         fq.name = 'Filter {}'.format(i + 1)
         fq.user = User.objects.get(username='admin')
         fq.content_type = content_type
         fq.querydict = dict(auto=i+1)
         fq.persistent = True if i < 3 else False
-        try:
-            fq.save()
-        except IntegrityError:
-            pass
+        fq.save()
 
 
 class Command(BaseCommand):
