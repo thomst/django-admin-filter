@@ -15,20 +15,12 @@ class CustomFilter(admin.SimpleListFilter):
 
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
-        self.csrftoken = self.get_csrftoken(request)
+        self.csrftoken = request.META.get('CSRF_COOKIE')
         self.filterset_class = AdminFilterSet.by_model(model)
         try:
             self.current_query = FilterQuery.objects.get(pk=self.value())
         except FilterQuery.DoesNotExist:
             self.current_query = None
-
-    def get_csrftoken(self, request):
-        if settings.CSRF_USE_SESSIONS:
-            return request.session.get('_csrftoken')
-        elif 'csrftoken' in request.headers.get('Cookie', str()):
-            return re.findall(r'csrftoken=(\w+)', request.headers['Cookie'])[0]
-        else:
-            return None
 
     def queryset(self, request, queryset):
         if not self.current_query:
