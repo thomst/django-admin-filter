@@ -42,7 +42,7 @@ $( document ).ready(function() {
             dataType: 'json',
             success: function() { $(a).parent().remove() },
             error: function(xhr, msg, exp) {
-                console.log('Something went wrong: ' + msg)
+                console.log('Something went wrong: ' + msg + ' ' + exp)
             },
         });
         e.preventDefault();
