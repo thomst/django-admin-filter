@@ -74,13 +74,8 @@ class FilterViewTest(TestCase):
             self.assertNotIn(fq.name, content)
 
     def test_01_custom_filter_form(self):
-        with self.settings(CSRF_USE_SESSIONS=True):
-            response = self.client.get(self.url)
-            self.check_content(response)
-
-        with self.settings(CSRF_USE_SESSIONS=False):
-            response = self.client.get(self.url)
-            self.check_content(response)
+        response = self.client.get(self.url)
+        self.check_content(response)
 
         for i in range(3):
             with AlterAppSettings(HISTORY_LIMIT=i, TRUNCATE_HISTORY=False):
