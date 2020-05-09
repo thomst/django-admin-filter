@@ -45,7 +45,6 @@ class CustomFilter(admin.SimpleListFilter):
         persistent = FilterQuery.objects.filter(persistent=True, **params)
         history = FilterQuery.objects.filter(persistent=False, **params)
         recent = history[:app_settings.HISTORY_LIMIT]
-        history.exclude(id__in=[f.id for f in recent]).delete()
         return list(persistent) + list(recent)
 
     def choices(self, changelist):
