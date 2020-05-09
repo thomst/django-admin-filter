@@ -23,11 +23,6 @@ FIELDS = dict(
         value = lambda i: UNICODE_STRING[:i],
         filters = ['exact', 'contains', 'icontains'],
     ),
-    text = dict(
-        field = models.TextField(),
-        value = lambda i: UNICODE_STRING[i:],
-        filters = ['exact', 'contains', 'icontains'],
-    ),
     boolean = dict(
         field = models.BooleanField(),
         value = lambda i: [True, False][i % 2],
@@ -53,32 +48,13 @@ FIELDS = dict(
         value = lambda i: (datetime.utcfromtimestamp(0) + timedelta(hours=i)).time(),
         filters = ['exact', 'hour__gt', 'hour__lt'],
     ),
-    # duration = dict(
-    #     field = models.DurationField(),
-    #     value = lambda i: timedelta(hours=i),
-    # ),
-    decimal = dict(
-        field = models.DecimalField(max_digits=5, decimal_places=2),
-        value = lambda i: i/5.0,
-        filters = ['exact', 'lt', 'gt', 'in', 'range'],
-    ),
-    smallinteger = dict(
-        field = models.SmallIntegerField(),
-        value = lambda i: i,
-        filters = ['exact', 'lt', 'gt', 'in', 'range'],
+    duration = dict(
+        field = models.DurationField(),
+        value = lambda i: timedelta(hours=i),
+        filters = ['exact'],
     ),
     integer = dict(
         field = models.IntegerField(),
-        value = lambda i: i,
-        filters = ['exact', 'lt', 'gt', 'in', 'range'],
-    ),
-    positiveinteger = dict(
-        field = models.PositiveIntegerField(),
-        value = lambda i: i,
-        filters = ['exact', 'lt', 'gt', 'in', 'range'],
-    ),
-    positivesmallinteger = dict(
-        field = models.PositiveSmallIntegerField(),
         value = lambda i: i,
         filters = ['exact', 'lt', 'gt', 'in', 'range'],
     ),
@@ -87,35 +63,10 @@ FIELDS = dict(
         value = lambda i:  i/5.0,
         filters = ['exact', 'lt', 'gt', 'in', 'range'],
     ),
-    slug = dict(
-        field = models.SlugField(),
-        value = lambda i: i,
-        filters = ['exact', 'contains', 'icontains'],
-    ),
-    email = dict(
-        field = models.EmailField(),
-        value = lambda i: i,
-        filters = ['exact', 'contains', 'icontains'],
-    ),
-    filepath = dict(
-        field = models.FilePathField(),
-        value = lambda i: __file__,
-        filters = ['exact', 'contains', 'icontains'],
-    ),
-    url = dict(
-        field = models.URLField(),
-        value = lambda i: 'any.domain_{}.de'.format(i),
-        filters = ['exact', 'contains', 'icontains'],
-    ),
-    genericipaddress = dict(
-        field = models.GenericIPAddressField(),
-        value = lambda i: '{}.{}.{}.{}'.format(i*4, i*3, i*2, i*1),
-        filters = ['exact', 'contains', 'icontains'],
-    ),
-    uuid = dict(
-        field = models.UUIDField(),
-        value = lambda i: uuid.uuid4(),
-        filters = ['exact', 'contains', 'icontains'],
+    decimal = dict(
+        field = models.DecimalField(max_digits=5, decimal_places=2),
+        value = lambda i: i/5.0,
+        filters = ['exact', 'lt', 'gt', 'in', 'range'],
     ),
 )
 
