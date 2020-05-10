@@ -124,7 +124,22 @@ class FilterViewTest(TestCase):
         for field_name in self.querydict.keys():
             self.assertIn(field_name, content)
 
+        # use invalid url-keywords for app_label and model
+        url = self.fq_url.replace('modela', 'modelx')
+        response = self.client.get(url)
+        content = response.content.decode('utf-8')
+        self.assertEqual(response.status_code, 404)
+
     def test_05_post_filterquery_form(self):
+        # pass invalid form-data
+        post_data = dict()
+        post_data['save'] = True
+        post_data['auto'] = 'foobar'
+        response = self.client.post(self.fq_url, data=post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.redirect_chain)
+        self.assertIn('<ul class="errorlist"><li>Enter a number.</li></ul>', response.content.decode('utf8'))
+
         # create filter via save and apply
         for action in ['save', 'apply']:
             post_data = self.querydict.copy()
