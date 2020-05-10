@@ -32,8 +32,9 @@ setup(
     packages=find_packages(exclude=["tests"]),
     include_package_data=True,
     install_requires=[
-        "Django>=1.11",
+        "Django>=2.2",
         'django-filter>=2.2',
+        'jsonfield>=3.1.0',
     ],
     classifiers=[
         dev_status,
