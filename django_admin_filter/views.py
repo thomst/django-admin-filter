@@ -4,6 +4,7 @@ from decimal import Decimal
 from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.text import format_lazy
 from django.utils.translation import gettext as _
 from django.core.exceptions import PermissionDenied
 from django.core.exceptions import ImproperlyConfigured
@@ -39,9 +40,8 @@ def setup(func):
         try:
             self.content_type = ContentType.objects.get(**kwargs)
         except ContentType.DoesNotExist:
-            raise Http404(_(
-                "No model '{model}' in app '{app_label}'".format(**kwargs)
-            ))
+            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **kwargs)
+            raise Http404(msg)
         else:
             ct_model = self.content_type.model_class()
             self.filterset_class = AdminFilterSet.by_model(ct_model)
