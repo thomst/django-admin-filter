@@ -51,12 +51,13 @@ class FilterViewTest(TestCase):
         self.queryset = FilterQuery.objects.filter(**self.fq_params)
         self.persistents = self.queryset.filter(persistent=True)
         self.history = self.queryset.filter(persistent=False)
-        self.queryfields = list()
+        self.querydict = dict()
+        index = 4
         for field, data in FIELDS.items():
-            self.queryfields.append(field)
-            for filter in data['filters']:
+            self.querydict[field] = data['filters']['exact'](index)
+            for filter, data_gen in data['filters'].items():
                 if filter == 'exact': continue
-                self.queryfields.append(field + '__' + filter)
+                self.querydict[field + '__' + filter] = data_gen(index)
 
     def check_content(self, response):
         self.assertEqual(response.status_code, 200)
@@ -100,9 +101,9 @@ class FilterViewTest(TestCase):
         # check description-generation
         description = list()
         querydict = dict()
-        for index, field in enumerate(self.queryfields):
-            querydict[field] = str(index)
-            description.append('{} = {}'.format(field, index))
+        for field, value in self.querydict.items():
+            querydict[field] = value
+            description.append('{} = {}'.format(field, value))
             fq = FilterQuery(**self.fq_params, querydict=querydict)
             fq.save()
             for line in description:
@@ -120,20 +121,13 @@ class FilterViewTest(TestCase):
         response = self.client.get(self.fq_url)
         content = response.content.decode('utf-8')
         self.assertEqual(response.status_code, 200)
-        for field_name in self.queryfields:
+        for field_name in self.querydict.keys():
             self.assertIn(field_name, content)
 
     def test_05_post_filterquery_form(self):
-
-        # setup field-data for form-fields
-        base_post_data = dict()
-        for index, field in enumerate(self.queryfields[:9]):
-            # FIXME: Pass some real data, not only str(index)
-            base_post_data[field] = str(index)
-
-        # create persistent filter using 'save'
+        # create filter via save and apply
         for action in ['save', 'apply']:
-            post_data = base_post_data.copy()
+            post_data = self.querydict.copy()
             post_data[action] = True
             response = self.client.post(self.fq_url, data=post_data, follow=True)
             self.assertEqual(response.status_code, 200)

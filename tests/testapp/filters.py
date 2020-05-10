@@ -8,7 +8,7 @@ from .models import ModelA
 def get_filters():
     filters = dict()
     for field, data in FIELDS.items():
-        filters[field] = data['filters']
+        filters[field] = data['filters'].keys()
     return filters
 
 
