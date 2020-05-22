@@ -2,8 +2,8 @@
 Welcome to django-admin-filter
 =================================
 
-.. image:: https://travis-ci.com/thomst/django-admin-filter.svg?branch=master
-   :target: https://travis-ci.com/thomst/django-admin-filter
+.. image:: https://api.travis-ci.org/thomst/django-admin-filter.svg?branch=master
+   :target: https://travis-ci.org/github/thomst/django-admin-filter
 
 .. image:: https://coveralls.io/repos/github/thomst/django-admin-filter/badge.svg?branch=master
    :target: https://coveralls.io/github/thomst/django-admin-filter?branch=master
