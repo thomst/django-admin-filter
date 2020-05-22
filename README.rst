@@ -31,7 +31,7 @@ Installation
 ============
 Install from pypi.org::
 
-    pip install django-admin-filter
+   pip install django-admin-filter
 
 
 Configuration
@@ -42,19 +42,19 @@ in your admin changelist:
 
 Add `django_admin_filter` to your `INSTALLED_APPS`::
 
-    INSTALLED_APPS = [
-        'django_admin_filter',
-        ...
-    ]
+   INSTALLED_APPS = [
+      'django_admin_filter',
+      ...
+   ]
 
 
 Add the `CustomFilter` to the `list_filter` of your ModelAdmin::
 
-    from django_admin_filter.filters import CustomFilter
+   from django_admin_filter.filters import CustomFilter
 
-    class MyAdmin(admin.ModelAdmin):
-        list_filter = [CustomFilter, ...]
-        ...
+   class MyAdmin(admin.ModelAdmin):
+      list_filter = [CustomFilter, ...]
+      ...
 
 
 And setup the filter-class you want to use with your model. This works exactly
@@ -62,14 +62,14 @@ as described in the django-filter-docs_. But to use your filter-class with the
 django-admin-filter there is one thing to mind: Instead of subclass
 `django_filters.FilterSet`::
 
-    import django_filters
+   import django_filters
 
-    class MyFilter(django_filters.FilterSet):
-        ...
+   class MyFilter(django_filters.FilterSet):
+      ...
 
 use the `AdminFilterSet`::
 
-    from django_admin_filter.filterset import AdminFilterSet
+   from django_admin_filter.filterset import AdminFilterSet
 
-    class MyFilter(AdminFilterSet):
-        ...
+   class MyFilter(AdminFilterSet):
+      ...
