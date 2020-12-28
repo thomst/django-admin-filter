@@ -47,7 +47,7 @@ class FilterQuery(models.Model):
                 persistent=False
             )
             FilterQuery.objects.filter(
-                id__in=history[app_settings.HISTORY_LIMIT:]
+                id__in=list(history[app_settings.HISTORY_LIMIT:].values_list("id", flat=True))
             ).delete()
 
     @property
