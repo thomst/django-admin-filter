@@ -100,6 +100,7 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
         self.object.content_type = self.content_type
         self.object.persistent = 'save' in self.request.POST
         self.object.user = self.request.user
+        self.object.for_everyone = self.object.for_everyone and 'save' in self.request.POST
         self.object.save()
         return super().form_valid(form)
 

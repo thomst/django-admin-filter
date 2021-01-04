@@ -12,8 +12,13 @@ def urlpath():
 
 
 @register.filter
-def persistent(filter):
-    return [f for f in filter[1:] if f['filter'].persistent]
+def persistent_everyone(filter):
+    return [f for f in filter[1:] if f['filter'].persistent and f['filter'].for_everyone]
+
+
+@register.filter
+def persistent_personal(filter):
+    return [f for f in filter[1:] if f['filter'].persistent and not f['filter'].for_everyone]
 
 
 @register.filter

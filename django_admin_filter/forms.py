@@ -20,4 +20,4 @@ class FilterForm(forms.ModelForm):
 
     class Meta:
         model = FilterQuery
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'for_everyone']
