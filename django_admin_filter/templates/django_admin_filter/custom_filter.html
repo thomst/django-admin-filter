@@ -29,6 +29,9 @@
     {% for choice in history %}
         <li{% if choice.selected %} class="selected"{% endif %}>
         <a href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a></li>
+        {% if choice.selected %}
+        	<a class="filter-action filter-selected" style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">✔️</a>
+        {% endif %}
     {% endfor %}
 {% endif %}
 {% endwith %}
