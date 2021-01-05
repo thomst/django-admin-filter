@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2020-12-29 09:32+0100\n"
-"PO-Revision-Date: 2020-07-15 10:56+0100\n"
+"PO-Revision-Date: 2021-01-05 11:50+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Language: it\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.4.2\n"
 
 #: .\filters.py:12
 msgid "Custom Filters"
@@ -28,7 +28,7 @@ msgstr "Tutti"
 
 #: .\models.py:33
 msgid "Filter from "
-msgstr "Filtra da"
+msgstr "Filtra da "
 
 #: .\templates\django_admin_filter\custom_filter.html:2
 #, python-format
