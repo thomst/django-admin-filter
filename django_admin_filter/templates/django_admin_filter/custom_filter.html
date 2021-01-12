@@ -17,9 +17,6 @@
         <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
             <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
             <div class="filter-actions">
-	            {% if choice.selected %}
-	            	<a class="filter-action filter-selected" style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">✔️</a>
-	            {% endif %}
 	            <a class="filter-action async-filter-update" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✎</a>
 	            <a class="filter-action async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
 	        </div>
@@ -29,13 +26,8 @@
 {% if history %}
     <li><h3 style="padding-left:0">{% trans "History" %}</h3></li>
     {% for choice in history %}
-        <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
-        <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
-        <div class="filter-actions">
-	        {% if choice.selected %}
-	        	<a class="filter-action filter-selected" style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">✔️</a>
-	        {% endif %}
-	    </div>
+        <li{% if choice.selected %} class="selected"{% endif %}>
+        	<a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
         </li>
     {% endfor %}
 {% endif %}
