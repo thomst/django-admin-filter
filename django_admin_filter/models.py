@@ -45,10 +45,8 @@ class FilterQuery(models.Model):
                 user=self.user,
                 content_type=self.content_type,
                 persistent=False
-            )
-            FilterQuery.objects.filter(
-                id__in=history[app_settings.HISTORY_LIMIT:]
-            ).delete()
+            )[app_settings.HISTORY_LIMIT:]
+            FilterQuery.objects.filter(id__in=[f.id for f in history]).delete()
 
     @property
     def pretty_query(self):
