@@ -5,7 +5,7 @@ from datetime import timedelta
 from django.core.management.base import BaseCommand
 from django.core.management.base import CommandError
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db.utils import IntegrityError
 
 from django_admin_filter.models import FilterQuery
@@ -13,6 +13,8 @@ from django_admin_filter.settings import HISTORY_LIMIT
 from ...models import FIELDS
 from ...models import ModelA
 from ...models import UNICODE_STRING
+
+User = get_user_model()
 
 
 def create_test_data():
