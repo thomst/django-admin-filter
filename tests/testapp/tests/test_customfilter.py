@@ -126,8 +126,18 @@ class FilterViewTest(TestCase):
         # use invalid url-keywords for app_label and model
         url = self.fq_url.replace('modela', 'modelx')
         response = self.client.get(url)
-        content = response.content.decode('utf-8')
         self.assertEqual(response.status_code, 404)
+
+        # load filter query form to update an existing filter query
+        fq_id = FilterQuery.objects.filter(persistent=True)[0].id
+        url = '{}{}'.format(self.fq_url, fq_id)
+        response = self.client.get(url, follow=True)
+        content = response.content.decode('utf-8')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Save as new and apply", content)
+        for field_name in self.querydict.keys():
+            self.assertIn(field_name, content)
+
 
     def test_05_post_filterquery_form(self):
         # pass invalid form-data
