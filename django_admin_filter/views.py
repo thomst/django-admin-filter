@@ -11,7 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
 from django.views.generic.base import TemplateResponseMixin
-from django.views.generic.edit import BaseCreateView
+from django.views.generic.edit import BaseCreateView, BaseUpdateView, BaseDeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -37,10 +37,13 @@ def setup(func):
     Extract the contenttype from url-paramerters and setup the filter-class.
     """
     def wrapper(self, request, **kwargs):
+        kwargs_temp = kwargs.copy()
+        try : kwargs_temp.pop("pk")
+        except KeyError : pass
         try:
-            self.content_type = ContentType.objects.get(**kwargs)
+            self.content_type = ContentType.objects.get(**kwargs_temp)
         except ContentType.DoesNotExist:
-            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **kwargs)
+            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **kwargs_temp)
             raise Http404(msg)
         else:
             ct_model = self.content_type.model_class()
@@ -49,7 +52,7 @@ def setup(func):
     return wrapper
 
 
-class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView):
+class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     """
     View to add and delete Filters.
     """
@@ -96,9 +99,11 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
 
     def form_valid(self, form, query_form):
         self.object = form.save(commit=False)
+        if 'save' not in self.request.POST :
+            self.object.id = None
         self.object.querydict = self.get_querydict()
         self.object.content_type = self.content_type
-        self.object.persistent = 'save' in self.request.POST
+        self.object.persistent = 'save' in self.request.POST or 'save_new' in self.request.POST
         self.object.user = self.request.user
         self.object.save()
         return super().form_valid(form)
@@ -117,7 +122,7 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
         if self.request.method in ('POST', 'PUT'):
             data = self.request.POST
         else:
-            data = dict()
+            data = self.object.querydict if self.object else dict()
         filter = self.filterset_class(data)
         return filter.form
 
@@ -126,3 +131,24 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin, BaseCreateView)
         extra_context = dict(query_form=query_form)
         extra_context.update(kwargs)
         return super().get_context_data(**extra_context)
+
+class FilterQueryViewCreate(FilterQueryView, BaseCreateView):
+    pass
+
+class FilterQueryViewUpdate(FilterQueryView, BaseUpdateView):
+
+    @setup
+    @permission_required
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.user == self.request.user:
+            raise PermissionDenied
+        return super().get(request, *args, **kwargs)
+
+    @setup
+    @permission_required        
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not self.object.user == self.request.user:
+            raise PermissionDenied
+        return super().post(request, *args, **kwargs)
