@@ -16,7 +16,10 @@
     {% for choice in persistent %}
         <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
             <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
-            <a class="async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
+            <div class="filter-actions">
+	            <a class="filter-action async-filter-update" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✎</a>
+	            <a class="filter-action async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
+	        </div>
         </li>
     {% endfor %}
 {% endif %}
@@ -24,7 +27,8 @@
     <li><h3 style="padding-left:0">{% trans "History" %}</h3></li>
     {% for choice in history %}
         <li{% if choice.selected %} class="selected"{% endif %}>
-        <a href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a></li>
+        	<a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
+        </li>
     {% endfor %}
 {% endif %}
 {% endwith %}
@@ -34,18 +38,20 @@
 (function($) {
 $( document ).ready(function() {
     $('.async-filter-delete').click(function(e) {
+    	e.preventDefault();
+    	if (!confirm('{% trans "Confirm deletion?" %}'))
+    		return;
         var a = this;
         $.ajax({
             url: a.href,
             type: 'DELETE',
             headers: { 'X-CSRFToken': a.getAttribute("data-csrftoken") },
             dataType: 'json',
-            success: function() { $(a).parent().remove() },
+            success: function() { $(a).parents('li').first().remove() },
             error: function(xhr, msg, exp) {
                 console.log('Something went wrong: ' + msg + ' ' + exp)
             },
         });
-        e.preventDefault();
     });
 })
 })(django.jQuery);
