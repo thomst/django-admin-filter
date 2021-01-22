@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test import Client
 from django.urls import reverse
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from django_admin_filter import apps
@@ -42,7 +42,7 @@ class FilterViewTest(TestCase):
         create_test_data()
 
     def setUp(self):
-        self.admin = User.objects.get(username='admin')
+        self.admin = get_user_model().objects.get(username='admin')
         self.client.force_login(self.admin)
         self.url = reverse('admin:testapp_modela_changelist')
         self.fq_url = '{}{}'.format(self.url, app_settings.URL_PATH)

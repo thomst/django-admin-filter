@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
@@ -18,7 +17,7 @@ class FilterQuery(models.Model):
     querydict = JSONField(default=dict())
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ['-created']
