@@ -11,7 +11,6 @@ from django.contrib.contenttypes.models import ContentType
 from django_admin_filter import apps
 from django_admin_filter import settings as app_settings
 from django_admin_filter.filters import CustomFilter
-from django_admin_filter.views import FilterQueryView
 from django_admin_filter.models import FilterQuery
 
 from ..models import ModelA

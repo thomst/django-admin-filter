@@ -7,11 +7,8 @@ from django.shortcuts import render
 from django.utils.text import format_lazy
 from django.utils.translation import gettext as _
 from django.core.exceptions import PermissionDenied
-from django.core.exceptions import ImproperlyConfigured
-from django.core.exceptions import FieldError
-from django.core.exceptions import ValidationError
 from django.views.generic.base import TemplateResponseMixin
-from django.views.generic.edit import BaseCreateView, BaseUpdateView, BaseDeleteView
+from django.views.generic.edit import BaseCreateView, BaseUpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.urls import reverse
@@ -52,7 +49,7 @@ def setup(func):
     return wrapper
 
 
-class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
+class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     """
     View to add and delete Filters.
     """
@@ -133,11 +130,11 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         return super().get_context_data(**extra_context)
 
 
-class CreateFilterQueryView(FilterQueryView, BaseCreateView):
+class CreateFilterQueryView(BaseFilterQueryView, BaseCreateView):
     pass
 
 
-class UpdateFilterQueryView(FilterQueryView, BaseUpdateView):
+class UpdateFilterQueryView(BaseFilterQueryView, BaseUpdateView):
 
     @setup
     @permission_required
