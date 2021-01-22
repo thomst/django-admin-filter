@@ -132,10 +132,12 @@ class FilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         extra_context.update(kwargs)
         return super().get_context_data(**extra_context)
 
-class FilterQueryViewCreate(FilterQueryView, BaseCreateView):
+
+class CreateFilterQueryView(FilterQueryView, BaseCreateView):
     pass
 
-class FilterQueryViewUpdate(FilterQueryView, BaseUpdateView):
+
+class UpdateFilterQueryView(FilterQueryView, BaseUpdateView):
 
     @setup
     @permission_required
