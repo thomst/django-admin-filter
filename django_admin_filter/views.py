@@ -1,6 +1,7 @@
 import html.parser
 from decimal import Decimal
 
+from django import forms
 from django.http import Http404
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -113,6 +114,13 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         query = '?filter_id={}'.format(self.object.id)
         url = reverse(url_pattern.format(**self.kwargs)) + query
         return url
+
+    def get_form(self):
+        form = super().get_form()
+        # hide the for_everyone field if user has no permission
+        if not FilterQuery.has_global_perm(self.request.user):
+            form.fields['for_everyone'].widget = forms.HiddenInput()
+        return form
 
     def get_query_form(self):
         if self.request.method in ('POST', 'PUT'):
