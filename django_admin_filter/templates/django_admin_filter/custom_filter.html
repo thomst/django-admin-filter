@@ -10,10 +10,19 @@
         <a href="{{ choice.query_string|iriencode }}" title="{{ choice.display }}">{{ choice.display }}</a>
     </li>
 {% endfor %}
-{% with persistent=choices|persistent history=choices|history %}
-{% if persistent %}
-    <li><h3 style="padding-left:0">{% trans "Filter" %}</h3></li>
-    {% for choice in persistent %}
+{% with persistent_everyone=choices|persistent_everyone persistent_personal=choices|persistent_personal history=choices|history %}
+{% if persistent_everyone %}
+    <li><h3 style="padding-left:0">{% trans "Global filters" %}</h3></li>
+    {% for choice in persistent_everyone %}
+        <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
+            <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
+            <a class="async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
+        </li>
+    {% endfor %}
+{% endif %}
+{% if persistent_personal %}
+    <li><h3 style="padding-left:0">{% trans "Personal filters" %}</h3></li>
+    {% for choice in persistent_personal %}
         <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
             <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
             <div class="filter-actions">

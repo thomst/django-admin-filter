@@ -18,6 +18,7 @@ class FilterQuery(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    for_everyone = models.BooleanField(default=False)
 
     class Meta:
         ordering = ['-created']
