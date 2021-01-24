@@ -1,0 +1,65 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER.
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-12-29 09:32+0100\n"
+"PO-Revision-Date: 2021-01-05 11:50+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: it\n"
+"X-Generator: Poedit 2.4.2\n"
+
+#: .\filters.py:12
+msgid "Custom Filters"
+msgstr "Filtri personalizzati"
+
+#: .\filters.py:48
+msgid "All"
+msgstr "Tutti"
+
+#: .\models.py:33
+msgid "Filter from "
+msgstr "Filtra da "
+
+#: .\templates\django_admin_filter\custom_filter.html:2
+#, python-format
+msgid " By %(filter_title)s "
+msgstr " Da %(filter_title)s "
+
+#: .\templates\django_admin_filter\custom_filter.html:5
+#: .\templates\django_admin_filter\filter_query.html:4
+msgid "Create a new filter"
+msgstr "Crea un nuovo filtro"
+
+#: .\templates\django_admin_filter\custom_filter.html:5
+msgid "New filter"
+msgstr "Nuovo filtro"
+
+#: .\templates\django_admin_filter\custom_filter.html:15
+msgid "Filter"
+msgstr "Filtro"
+
+#: .\templates\django_admin_filter\custom_filter.html:24
+msgid "History"
+msgstr "Storia"
+
+#: .\templates\django_admin_filter\filter_query.html:15
+msgid "Apply"
+msgstr "Applica"
+
+#: .\templates\django_admin_filter\filter_query.html:16
+msgid "Save and apply"
+msgstr "Salva e applica"
+
+#: .\views.py:43
+msgid "No model '{model}' in app '{app_label}'"
+msgstr "Nessun modello '{model}' nell'applicazione '{app_label}'"

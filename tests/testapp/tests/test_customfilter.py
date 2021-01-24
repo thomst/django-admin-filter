@@ -5,13 +5,12 @@ from django.test import TestCase
 from django.test import Client
 from django.urls import reverse
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 
 from django_admin_filter import apps
 from django_admin_filter import settings as app_settings
 from django_admin_filter.filters import CustomFilter
-from django_admin_filter.views import FilterQueryView
 from django_admin_filter.models import FilterQuery
 
 from ..models import ModelA
@@ -42,7 +41,7 @@ class FilterViewTest(TestCase):
         create_test_data()
 
     def setUp(self):
-        self.admin = User.objects.get(username='admin')
+        self.admin = get_user_model().objects.get(username='admin')
         self.client.force_login(self.admin)
         self.url = reverse('admin:testapp_modela_changelist')
         self.fq_url = '{}{}'.format(self.url, app_settings.URL_PATH)
@@ -127,8 +126,18 @@ class FilterViewTest(TestCase):
         # use invalid url-keywords for app_label and model
         url = self.fq_url.replace('modela', 'modelx')
         response = self.client.get(url)
-        content = response.content.decode('utf-8')
         self.assertEqual(response.status_code, 404)
+
+        # load filter query form to update an existing filter query
+        fq_id = FilterQuery.objects.filter(persistent=True)[0].id
+        url = '{}{}'.format(self.fq_url, fq_id)
+        response = self.client.get(url, follow=True)
+        content = response.content.decode('utf-8')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Save as new and apply", content)
+        for field_name in self.querydict.keys():
+            self.assertIn(field_name, content)
+
 
     def test_05_post_filterquery_form(self):
         # pass invalid form-data

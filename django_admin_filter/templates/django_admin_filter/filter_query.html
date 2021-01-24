@@ -1,7 +1,13 @@
 {% extends 'admin/base_site.html' %}
 {% load i18n %}
 {% block content %}
-<h1>{% trans "Create A New Filter" %}</h1>
+<h1>
+	{% if object.id %}
+		{% trans "Create or change filter" %}
+	{% else %}
+		{% trans "Create a new filter" %}
+	{% endif %}
+</h1>
 
  <form action="" method="post">
     {% csrf_token %}
@@ -9,9 +15,13 @@
         {{ form.as_table }}
     </table>
     <table>
-        <thead><tr><th>Filter Parameter</th></tr></thead>
+        <thead><tr><th>{% trans "Filter Parameter" %}</th></tr></thead>
         {{ query_form.as_table }}
     </table>
     <input type="submit" name="apply" value="{% trans "Apply" %}" />
     <input type="submit" name="save" value="{% trans "Save and apply" %}" />
+    {% if object.id %}
+    	<input type="submit" name="save_new" value="{% trans "Save as new and apply" %}" />
+    {% endif %}
+ </form>
 {% endblock %}

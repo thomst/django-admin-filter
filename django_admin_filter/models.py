@@ -4,7 +4,6 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
@@ -18,7 +17,7 @@ class FilterQuery(models.Model):
     querydict = JSONField(default=dict())
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     for_everyone = models.BooleanField(default=False)
 
     class Meta:
@@ -46,10 +45,8 @@ class FilterQuery(models.Model):
                 user=self.user,
                 content_type=self.content_type,
                 persistent=False
-            )
-            FilterQuery.objects.filter(
-                id__in=history[app_settings.HISTORY_LIMIT:]
-            ).delete()
+            )[app_settings.HISTORY_LIMIT:]
+            FilterQuery.objects.filter(id__in=[f.id for f in history]).delete()
 
     @property
     def pretty_query(self):
