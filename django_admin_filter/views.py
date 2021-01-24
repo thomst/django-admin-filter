@@ -17,7 +17,7 @@ from .models import FilterQuery
 from .forms import FilterForm
 
 
-def permission_required(func):
+def can_view_related_model(func):
     """
     Decorator for view-methods to check permission to view the filtered items.
     """
@@ -29,18 +29,16 @@ def permission_required(func):
     return wrapper
 
 
-def setup(func):
+def setup_filterclass(func):
     """
     Extract the contenttype from url-paramerters and setup the filter-class.
     """
     def wrapper(self, request, **kwargs):
-        kwargs_temp = kwargs.copy()
-        try : kwargs_temp.pop("pk")
-        except KeyError : pass
+        params = dict(app_label=kwargs['app_label'], model=kwargs['model'])
         try:
-            self.content_type = ContentType.objects.get(**kwargs_temp)
+            self.content_type = ContentType.objects.get(**params)
         except ContentType.DoesNotExist:
-            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **kwargs_temp)
+            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **params)
             raise Http404(msg)
         else:
             ct_model = self.content_type.model_class()
@@ -59,7 +57,7 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     prefix = 'fq'
     object = None
 
-    @permission_required
+    @can_view_related_model
     def delete(self, *args, **kwargs):
         self.object = self.get_object()
         if not self.object.user == self.request.user:
@@ -68,13 +66,13 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         self.object.delete()
         return JsonResponse(response)
 
-    @setup
-    @permission_required
+    @setup_filterclass
+    @can_view_related_model
     def get(self, *args, **kwargs):
         return super().get(*args, **kwargs)
 
-    @setup
-    @permission_required
+    @setup_filterclass
+    @can_view_related_model
     def post(self, *args, **kwargs):
         form = self.get_form()
         query_form = self.get_query_form()
@@ -137,16 +135,16 @@ class CreateFilterQueryView(BaseFilterQueryView, BaseCreateView):
 
 class UpdateFilterQueryView(BaseFilterQueryView, BaseUpdateView):
 
-    @setup
-    @permission_required
+    @setup_filterclass
+    @can_view_related_model
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         if not self.object.user == self.request.user:
             raise PermissionDenied
         return super().get(request, *args, **kwargs)
 
-    @setup
-    @permission_required        
+    @setup_filterclass
+    @can_view_related_model        
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
         if not self.object.user == self.request.user:
