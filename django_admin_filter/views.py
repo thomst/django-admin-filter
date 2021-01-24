@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django import forms
 from django.http import Http404
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.text import format_lazy
@@ -106,10 +107,10 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         self.object.querydict = self.get_querydict()
         self.object.content_type = self.content_type
         self.object.persistent = 'save' in self.request.POST or 'save_new' in self.request.POST
+        self.object.for_everyone = self.object.for_everyone and self.object.persistent
         self.object.user = self.request.user
-        self.object.for_everyone = self.object.for_everyone and 'save' in self.request.POST
         self.object.save()
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url()) 
 
     def form_invalid(self, form, query_form):
         context = self.get_context_data(form=form, query_form=query_form)
