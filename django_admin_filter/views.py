@@ -30,6 +30,21 @@ def can_view_related_model(func):
     return wrapper
 
 
+def can_handle_filterquery(func):
+    """
+    Decorator to check the permission to delete or update a specific filterquery.
+    """
+    def wrapper(self, request, **kwargs):
+        obj = self.get_object()
+        is_owner = obj.user == self.request.user
+        can_handle = obj.for_everyone and obj.has_global_perm(self.request.user)
+        if not is_owner and not can_handle:
+            raise PermissionDenied
+
+        return func(self, request, **kwargs)
+    return wrapper
+
+
 def setup_filterclass(func):
     """
     Extract the contenttype from url-paramerters and setup the filter-class.
@@ -57,15 +72,6 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     form_class = FilterForm
     prefix = 'fq'
     object = None
-
-    @can_view_related_model
-    def delete(self, *args, **kwargs):
-        self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
-        response = dict(id=self.object.id)
-        self.object.delete()
-        return JsonResponse(response)
 
     @setup_filterclass
     @can_view_related_model
@@ -142,19 +148,20 @@ class CreateFilterQueryView(BaseFilterQueryView, BaseCreateView):
 
 
 class UpdateFilterQueryView(BaseFilterQueryView, BaseUpdateView):
-
-    @setup_filterclass
-    @can_view_related_model
+    @can_handle_filterquery
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
         return super().get(request, *args, **kwargs)
 
-    @setup_filterclass
-    @can_view_related_model        
+    @can_handle_filterquery
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
         return super().post(request, *args, **kwargs)
+
+    @can_view_related_model
+    @can_handle_filterquery
+    def delete(self, *args, **kwargs):
+        self.object = self.get_object()
+        response = dict(id=self.object.id)
+        self.object.delete()
+        return JsonResponse(response)
