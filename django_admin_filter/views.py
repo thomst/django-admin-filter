@@ -74,13 +74,6 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     prefix = 'fq'
     object = None
 
-    @setup_filterclass
-    @can_view_related_model
-    def get(self, *args, **kwargs):
-        return super().get(*args, **kwargs)
-
-    @setup_filterclass
-    @can_view_related_model
     def post(self, *args, **kwargs):
         form = self.get_form()
         query_form = self.get_query_form()
@@ -145,15 +138,27 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
 
 
 class CreateFilterQueryView(BaseFilterQueryView, BaseCreateView):
-    pass
+    @setup_filterclass
+    @can_view_related_model
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @setup_filterclass
+    @can_view_related_model
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class UpdateFilterQueryView(BaseFilterQueryView, BaseUpdateView):
+    @setup_filterclass
+    @can_view_related_model
     @can_handle_filterquery
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
         return super().get(request, *args, **kwargs)
 
+    @setup_filterclass
+    @can_view_related_model
     @can_handle_filterquery
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
