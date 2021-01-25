@@ -19,50 +19,50 @@ msgstr ""
 "X-Generator: Poedit 2.4.2\n"
 
 msgid "Custom Filters"
-msgstr "Filtri personalizzati"
+msgstr "Filtres personnalisés"
 
 msgid "All"
-msgstr "Tutti"
+msgstr "Tout"
 
 msgid "Filter from "
-msgstr "Filtra da "
+msgstr "Filtrer à partir de "
 
 #, python-format
 msgid " By %(filter_title)s "
-msgstr " Per %(filter_title)s "
+msgstr " Par %(filter_title)s "
 
 msgid "Create a new filter"
-msgstr "Crea un nuovo filtro"
+msgstr "Créer un nouveau filtre"
 
 msgid "New filter"
-msgstr "Nuovo filtro"
+msgstr "Nouveau filtre"
 
 msgid "Global filters"
-msgstr "Filtri globali"
+msgstr "Filtres globaux"
 
 msgid "Personal filters"
-msgstr "Filtri personali"
+msgstr "Filtres personnels"
 
 msgid "History"
-msgstr "Storia"
+msgstr "L'histoire"
 
 msgid "Confirm deletion?"
-msgstr "Confermi cancellazione?"
+msgstr "Confirmer la suppression?"
 
 msgid "Create or change filter"
-msgstr "Crea o modifica un filtro"
+msgstr "Créer ou modifier un filtre"
 
 msgid "Filter Parameter"
-msgstr "Parametri del filtro"
+msgstr "Paramètre de filtre"
 
 msgid "Apply"
-msgstr "Applica"
+msgstr "Appliquer"
 
 msgid "Save and apply"
-msgstr "Salva e applica"
+msgstr "Enregistrer et postuler"
 
 msgid "Save as new and apply"
-msgstr "Salva come nuovo e applica"
+msgstr "Enregistrer comme nouveau et postuler"
 
 msgid "No model '{model}' in app '{app_label}'"
-msgstr "Nessun modello '{model}' nell'applicazione '{app_label}'"
+msgstr "Aucun modèle "{model}" dans l'application "{app_label}""
