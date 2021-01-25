@@ -16,7 +16,12 @@
     {% for choice in persistent_everyone %}
         <li{% if choice.selected %} class="selected"{% endif %} style="display:flex;justify-content:space-between;">
             <a style="display:inline;" href="{{ choice.query_string|iriencode }}" title="{{ choice.filter.description }}">{{ choice.filter.name }}</a>
-            <a class="async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
+            {% if choice.has_global_perm %}
+                <div class="filter-actions">
+                    <a class="filter-action async-filter-update" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✎</a>
+                    <a class="filter-action async-filter-delete" style="display:inline;" data-csrftoken="{{choice.csrftoken}}" href="{% urlpath %}{{choice.filter.id}}/">✖</a>
+                </div>
+            {% endif %}
         </li>
     {% endfor %}
 {% endif %}

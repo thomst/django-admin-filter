@@ -16,6 +16,7 @@ class CustomFilter(admin.SimpleListFilter):
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
         self.csrftoken = request.META.get('CSRF_COOKIE')
+        self.user = request.user
         self.filterset_class = AdminFilterSet.by_model(model)
         try:
             self.current_query = FilterQuery.objects.get(pk=self.value())
@@ -63,4 +64,5 @@ class CustomFilter(admin.SimpleListFilter):
                 'query_string': changelist.get_query_string(dict(filter_id=query.id)),
                 'csrftoken': self.csrftoken,
                 'filter': query,
+                'has_global_perm': query.has_global_perm(self.user)
             }
