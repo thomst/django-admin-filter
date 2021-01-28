@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import Permission
 
 from django_admin_filter import apps
 from django_admin_filter import settings as app_settings
@@ -35,6 +36,18 @@ class AlterAppSettings:
             setattr(app_settings, setting, value)
 
 
+class AddPermission:
+    def __init__(self, user, perm):
+        self.user = user
+        self.perm = perm
+
+    def __enter__(self):
+        self.user.user_permissions.add(self.perm)       
+
+    def __exit__(self, type, value, traceback):
+        self.user.user_permissions.remove(self.perm)
+
+
 class FilterViewTest(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -42,7 +55,8 @@ class FilterViewTest(TestCase):
 
     def setUp(self):
         self.admin = get_user_model().objects.get(username='admin')
-        self.client.force_login(self.admin)
+        self.anyuser = get_user_model().objects.get(username='anyuser')
+        self.permission = Permission.objects.get(codename='can_handle_global_filterqueries')
         self.url = reverse('admin:testapp_modela_changelist')
         self.fq_url = '{}{}'.format(self.url, app_settings.URL_PATH)
         content_type = ContentType.objects.get(model=ModelA.__name__.lower())
@@ -50,6 +64,7 @@ class FilterViewTest(TestCase):
         self.queryset = FilterQuery.objects.filter(**self.fq_params)
         self.persistents = self.queryset.filter(persistent=True)
         self.history = self.queryset.filter(persistent=False)
+        self.globals = self.queryset.filter(for_everyone=True)
         self.querydict = dict()
         index = 4
         for field, data in FIELDS.items():
@@ -74,6 +89,7 @@ class FilterViewTest(TestCase):
             self.assertNotIn(fq.name, content)
 
     def test_01_custom_filter_form(self):
+        self.client.force_login(self.admin)
         response = self.client.get(self.url)
         self.check_content(response)
 
@@ -83,6 +99,7 @@ class FilterViewTest(TestCase):
                 self.check_content(response)
 
     def test_02_filter_deletion(self):
+        self.client.force_login(self.admin)
         fq = self.persistents.all()[0]
         url = '{}{}/'.format(self.fq_url, fq.id)
         response = self.client.delete(url)
@@ -117,11 +134,15 @@ class FilterViewTest(TestCase):
                 self.assertEqual(len(history), app_settings.HISTORY_LIMIT)
 
     def test_04_get_filterquery_form(self):
+        self.client.force_login(self.admin)
         response = self.client.get(self.fq_url)
         content = response.content.decode('utf-8')
         self.assertEqual(response.status_code, 200)
         for field_name in self.querydict.keys():
             self.assertIn(field_name, content)
+
+        # check if the for_everyone field is visible
+        self.assertIn('<input type="checkbox" name="fq-for_everyone"', content)
 
         # use invalid url-keywords for app_label and model
         url = self.fq_url.replace('modela', 'modelx')
@@ -129,7 +150,7 @@ class FilterViewTest(TestCase):
         self.assertEqual(response.status_code, 404)
 
         # load filter query form to update an existing filter query
-        fq_id = FilterQuery.objects.filter(persistent=True)[0].id
+        fq_id = FilterQuery.objects.filter(persistent=True, user=self.admin)[0].id
         url = '{}{}'.format(self.fq_url, fq_id)
         response = self.client.get(url, follow=True)
         content = response.content.decode('utf-8')
@@ -140,6 +161,7 @@ class FilterViewTest(TestCase):
 
 
     def test_05_post_filterquery_form(self):
+        self.client.force_login(self.admin)
         # pass invalid form-data
         post_data = dict()
         post_data['save'] = True
@@ -159,3 +181,79 @@ class FilterViewTest(TestCase):
             redirect_url = '{}?filter_id={}'.format(self.url, fq.id)
             self.assertEqual(response.redirect_chain[0][0], redirect_url)
             self.assertTrue(fq.persistent == (action is 'save'))
+
+    def test_06_get_filterquery_form_with_unprivileged_user(self):
+        self.client.force_login(self.anyuser)
+
+        # load edit global filter form - should fail
+        fq = FilterQuery.objects.filter(for_everyone=True)[0]
+        url = '{}{}/'.format(self.fq_url, fq.id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # load edit admin filter form - should fail
+        fq = FilterQuery.objects.filter(persistent=True, user=self.admin)[0]
+        url = '{}{}/'.format(self.fq_url, fq.id)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 403)
+
+        # load filter form - check if for_everyone is hidden
+        fq = FilterQuery.objects.filter(persistent=True, user=self.anyuser)[0]
+        url = '{}{}/'.format(self.fq_url, fq.id)
+        response = self.client.get(url)
+        content = response.content.decode('utf-8')
+        self.assertIn('<input type="hidden" name="fq-for_everyone"', content)
+
+        # for_everyone should be visible if user gets extra permission
+        with AddPermission(self.anyuser, self.permission):
+            fq = FilterQuery.objects.filter(persistent=True, user=self.anyuser)[0]
+            url = '{}{}/'.format(self.fq_url, fq.id)
+            response = self.client.get(url)
+            content = response.content.decode('utf-8')
+            self.assertIn('<input type="checkbox" name="fq-for_everyone"', content)
+
+    def test_05_post_filterquery_form_with_unprivileged_user(self):
+        self.client.force_login(self.anyuser)
+
+        # try to create filterquery with for_everyone - should fail
+        post_data = dict()
+        post_data['save'] = True
+        post_data['fq-for_everyone'] = True
+        response = self.client.post(self.fq_url, data=post_data, follow=True)
+        self.assertEqual(response.status_code, 403)
+
+        # give user permission and create filterquery with for_everyone
+        with AddPermission(self.anyuser, self.permission):
+            response = self.client.post(self.fq_url, data=post_data, follow=True)
+            self.assertEqual(response.status_code, 200)
+            fq = FilterQuery.objects.latest('created')
+            redirect_url = '{}?filter_id={}'.format(self.url, fq.id)
+            self.assertEqual(response.redirect_chain[0][0], redirect_url)
+            self.assertTrue(fq.persistent)
+
+
+    def test_06_custom_filter_form_with_unprivileged_user(self):
+        self.client.force_login(self.anyuser)
+
+        # load changelist - check custom filter
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        content = response.content.decode('utf-8')
+        for fq in self.globals.all():
+            self.assertIn(fq.name, content)
+            self.assertIn(fq.description, content)
+            self.assertIn('?filter_id={}'.format(fq.id), content)
+            # edit and delete links shouldn't be rendered
+            self.assertNotIn('{}{}/'.format(app_settings.URL_PATH, fq.id), content)
+
+        # give user permission and do it again
+        with AddPermission(self.anyuser, self.permission):
+            response = self.client.get(self.url)
+            self.assertEqual(response.status_code, 200)
+            content = response.content.decode('utf-8')
+            for fq in self.globals.all():
+                self.assertIn(fq.name, content)
+                self.assertIn(fq.description, content)
+                self.assertIn('?filter_id={}'.format(fq.id), content)
+                # edit and delete links should be rendered now
+                self.assertIn('{}{}/'.format(app_settings.URL_PATH, fq.id), content)
