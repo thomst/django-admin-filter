@@ -1,68 +1,67 @@
 # SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: \n"
+"Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2021-01-25 14:46+0100\n"
-"PO-Revision-Date: 2021-01-05 11:50+0100\n"
-"Last-Translator: \n"
-"Language-Team: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"Language: it\n"
-"X-Generator: Poedit 2.4.2\n"
 
 msgid "Custom Filters"
-msgstr "Filtri personalizzati"
+msgstr "Filtros personalizados"
 
 msgid "All"
-msgstr "Tutti"
+msgstr "Todas"
 
 msgid "Filter from "
-msgstr "Filtra da "
+msgstr "Filtrar de "
 
 #, python-format
 msgid " By %(filter_title)s "
-msgstr " Per %(filter_title)s "
+msgstr " Por %(filter_title)s "
 
 msgid "Create a new filter"
-msgstr "Crea un nuovo filtro"
+msgstr "Crea un nuevo filtro"
 
 msgid "New filter"
-msgstr "Nuovo filtro"
+msgstr "Filtro nuevo"
 
 msgid "Global filters"
-msgstr "Filtri globali"
+msgstr "Filtros globales"
 
 msgid "Personal filters"
-msgstr "Filtri personali"
+msgstr "Filtros personales"
 
 msgid "History"
-msgstr "Storia"
+msgstr "Historia"
 
 msgid "Confirm deletion?"
-msgstr "Confermi cancellazione?"
+msgstr "Confirmar la eliminación?"
 
 msgid "Create or change filter"
-msgstr "Crea o modifica un filtro"
+msgstr "Crear o cambiar filtro"
 
 msgid "Filter Parameter"
-msgstr "Parametri del filtro"
+msgstr "Parámetro de filtro"
 
 msgid "Apply"
-msgstr "Applica"
+msgstr "Aplicar"
 
 msgid "Save and apply"
-msgstr "Salva e applica"
+msgstr "Guardar y aplicar"
 
 msgid "Save as new and apply"
-msgstr "Salva come nuovo e applica"
+msgstr "Guardar como nuevo y aplicar"
 
 msgid "No model '{model}' in app '{app_label}'"
-msgstr "Nessun modello '{model}' nell'applicazione '{app_label}'"
+msgstr "Ningún modelo '{model}' en la aplicación '{app_label}'"
