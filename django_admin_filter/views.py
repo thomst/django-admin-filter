@@ -103,6 +103,11 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         self.object.for_everyone = self.object.for_everyone and self.object.persistent
         self.object.user = self.request.user
         self.object.save()
+
+        # check extra permission for global filterqueries
+        if self.object.for_everyone and not self.object.has_global_perm(self.request.user):
+            raise PermissionDenied
+
         return HttpResponseRedirect(self.get_success_url()) 
 
     def form_invalid(self, form, query_form):
