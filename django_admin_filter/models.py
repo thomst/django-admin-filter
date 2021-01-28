@@ -22,6 +22,12 @@ class FilterQuery(models.Model):
 
     class Meta:
         ordering = ['-created']
+        permissions = [('can_handle_global_filterqueries', 'Can handle global FilterQueries')]
+
+    @staticmethod
+    def has_global_perm(user):
+        perm = 'django_admin_filter.can_handle_global_filterqueries'
+        return user.has_perm(perm)
 
     def save(self, *args, **kwargs):
         # create a generic name if missing

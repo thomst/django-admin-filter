@@ -1,7 +1,9 @@
 import html.parser
 from decimal import Decimal
 
+from django import forms
 from django.http import Http404
+from django.http import HttpResponseRedirect
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.utils.text import format_lazy
@@ -17,7 +19,7 @@ from .models import FilterQuery
 from .forms import FilterForm
 
 
-def permission_required(func):
+def can_view_related_model(func):
     """
     Decorator for view-methods to check permission to view the filtered items.
     """
@@ -29,18 +31,31 @@ def permission_required(func):
     return wrapper
 
 
-def setup(func):
+def can_handle_filterquery(func):
+    """
+    Decorator to check the permission to delete or update a specific filterquery.
+    """
+    def wrapper(self, request, **kwargs):
+        obj = self.get_object()
+        is_owner = obj.user == self.request.user
+        can_handle = obj.for_everyone and obj.has_global_perm(self.request.user)
+        if not is_owner and not can_handle:
+            raise PermissionDenied
+
+        return func(self, request, **kwargs)
+    return wrapper
+
+
+def setup_filterclass(func):
     """
     Extract the contenttype from url-paramerters and setup the filter-class.
     """
     def wrapper(self, request, **kwargs):
-        kwargs_temp = kwargs.copy()
-        try : kwargs_temp.pop("pk")
-        except KeyError : pass
+        params = dict(app_label=kwargs['app_label'], model=kwargs['model'])
         try:
-            self.content_type = ContentType.objects.get(**kwargs_temp)
+            self.content_type = ContentType.objects.get(**params)
         except ContentType.DoesNotExist:
-            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **kwargs_temp)
+            msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **params)
             raise Http404(msg)
         else:
             ct_model = self.content_type.model_class()
@@ -59,22 +74,6 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
     prefix = 'fq'
     object = None
 
-    @permission_required
-    def delete(self, *args, **kwargs):
-        self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
-        response = dict(id=self.object.id)
-        self.object.delete()
-        return JsonResponse(response)
-
-    @setup
-    @permission_required
-    def get(self, *args, **kwargs):
-        return super().get(*args, **kwargs)
-
-    @setup
-    @permission_required
     def post(self, *args, **kwargs):
         form = self.get_form()
         query_form = self.get_query_form()
@@ -101,10 +100,10 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         self.object.querydict = self.get_querydict()
         self.object.content_type = self.content_type
         self.object.persistent = 'save' in self.request.POST or 'save_new' in self.request.POST
-        self.object.user = self.request.user
         self.object.for_everyone = self.object.for_everyone and self.object.persistent
+        self.object.user = self.request.user
         self.object.save()
-        return super().form_valid(form)
+        return HttpResponseRedirect(self.get_success_url()) 
 
     def form_invalid(self, form, query_form):
         context = self.get_context_data(form=form, query_form=query_form)
@@ -115,6 +114,13 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         query = '?filter_id={}'.format(self.object.id)
         url = reverse(url_pattern.format(**self.kwargs)) + query
         return url
+
+    def get_form(self):
+        form = super().get_form()
+        # hide the for_everyone field if user has no permission
+        if not FilterQuery.has_global_perm(self.request.user):
+            form.fields['for_everyone'].widget = forms.HiddenInput()
+        return form
 
     def get_query_form(self):
         if self.request.method in ('POST', 'PUT'):
@@ -132,23 +138,36 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
 
 
 class CreateFilterQueryView(BaseFilterQueryView, BaseCreateView):
-    pass
+    @setup_filterclass
+    @can_view_related_model
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+
+    @setup_filterclass
+    @can_view_related_model
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class UpdateFilterQueryView(BaseFilterQueryView, BaseUpdateView):
-
-    @setup
-    @permission_required
+    @setup_filterclass
+    @can_view_related_model
+    @can_handle_filterquery
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
         return super().get(request, *args, **kwargs)
 
-    @setup
-    @permission_required        
+    @setup_filterclass
+    @can_view_related_model
+    @can_handle_filterquery
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not self.object.user == self.request.user:
-            raise PermissionDenied
         return super().post(request, *args, **kwargs)
+
+    @can_view_related_model
+    @can_handle_filterquery
+    def delete(self, *args, **kwargs):
+        self.object = self.get_object()
+        response = dict(id=self.object.id)
+        self.object.delete()
+        return JsonResponse(response)

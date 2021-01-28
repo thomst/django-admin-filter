@@ -16,6 +16,7 @@ class CustomFilter(admin.SimpleListFilter):
     def __init__(self, request, params, model, model_admin):
         super().__init__(request, params, model, model_admin)
         self.csrftoken = request.META.get('CSRF_COOKIE')
+        self.user = request.user
         self.filterset_class = AdminFilterSet.by_model(model)
         try:
             self.current_query = FilterQuery.objects.get(pk=self.value())
@@ -33,10 +34,19 @@ class CustomFilter(admin.SimpleListFilter):
 
     def lookups(self, request, model_admin):
         model_name = model_admin.model.__name__.lower()
-        params = dict(content_type__model=model_name)
-        persistent_everyone = FilterQuery.objects.filter(for_everyone=True, persistent=True, **params)
-        persistent_personal = FilterQuery.objects.filter(for_everyone=False, persistent=True, user=request.user, **params)
-        history = FilterQuery.objects.filter(user=request.user, persistent=False, **params)
+        persistent_everyone = FilterQuery.objects.filter(
+            content_type__model=model_name,
+            for_everyone=True,
+            persistent=True)
+        persistent_personal = FilterQuery.objects.filter(
+            content_type__model=model_name,
+            user=request.user,
+            for_everyone=False,
+            persistent=True)
+        history = FilterQuery.objects.filter(
+            content_type__model=model_name,
+            user=request.user,
+            persistent=False)
         recent = history[:app_settings.HISTORY_LIMIT]
         return list(persistent_everyone) + list(persistent_personal) + list(recent)
 
@@ -54,4 +64,5 @@ class CustomFilter(admin.SimpleListFilter):
                 'query_string': changelist.get_query_string(dict(filter_id=query.id)),
                 'csrftoken': self.csrftoken,
                 'filter': query,
+                'has_global_perm': query.has_global_perm(self.user)
             }
