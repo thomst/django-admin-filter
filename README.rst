@@ -34,8 +34,8 @@ Install from pypi.org::
    pip install django-admin-filter
 
 
-Configuration
-=============
+Setup
+=====
 There are three things you need to do to use a custom filter-form for your model
 in your admin changelist:
 
@@ -73,3 +73,50 @@ use the `AdminFilterSet`::
 
    class MyFilter(AdminFilterSet):
       ...
+
+
+Configuration
+=============
+django_admin_filter defines some settings by its own. These settings and their
+default values are::
+
+   ADMIN_FILTER_HISTORY_LIMIT = 3
+   ADMIN_FILTER_TRUNCATE_HISTORY = True
+   ADMIN_FILTER_URL_PATH = 'filter/'
+
+ADMIN_FILTER_HISTORY_LIMIT
+--------------------------
+Filter queries that are not saved but only applied will be kept in the history
+section of the custom filter. The HISTORY_LIMIT setting defines how many applied
+filter queries will be kept. If you do not want to have a history of your
+applied queries at all set this setting to 0.
+
+
+ADMIN_FILTER_TRUNCATE_HISTORY
+-----------------------------
+By default applied filters that are beyond the scope of the filter history will
+be delete automatically from the database. Set this setting to False if you want
+to keep them for any reason.
+
+ADMIN_FILTER_URL_PATH
+---------------------
+By default the route for the filter query form will be composed as follows::
+
+   <app-label>/<model>/filter/[<pk>]
+
+If this does not work with your project you can alter the "filter/" part by
+using the ADMIN_FILTER_URL_PATH setting.
+
+
+Usage
+=====
+The CustomFilter will show up on the right with all the other list filters. It
+allows you to create new queries - based on your AdminFilterSet - or apply
+existing queries - either recent ones from the history, or those you created.
+It is also possible to create globel filter queries that can be used by every
+user. To do so a user must have an extra permission defined with the FilterQuery
+model::
+
+   "Can handle global FilterQueries"
+
+Users with this permission can commonly create edit and delete global filters.
