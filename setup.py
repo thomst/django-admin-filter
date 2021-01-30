@@ -35,7 +35,7 @@ setup(
     install_requires=[
         "Django>=2.2",
         'django-filter>=2.2',
-        'jsonfield>=3.1.0',
+        'django-jsonfield-backport>=1.0.2',
     ],
     classifiers=[
         dev_status,
@@ -46,6 +46,7 @@ setup(
         "Operating System :: OS Independent",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",

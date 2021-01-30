@@ -3,7 +3,13 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
-import jsonfield.fields
+# import jsonfield.fields
+# INFO: In migration 0004_auto_20210129_1058.py we switch from using jsonfield
+# to django_jsonfield_backport. To be able to apply migrations without
+# installing jsonfield, this file was edited:
+# * the jsonfield import was commented out
+# * the JSONField was replaced by a TextField (these fields are equivalent on
+#   the database level)
 
 
 class Migration(migrations.Migration):
@@ -23,7 +29,8 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=128)),
                 ('description', models.TextField(blank=True)),
                 ('persistent', models.BooleanField(default=False)),
-                ('querydict', jsonfield.fields.JSONField(default={})),
+                # ('querydict', jsonfield.fields.JSONField(default={})),
+                ('querydict', models.TextField(default='{}')),
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('content_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='contenttypes.ContentType')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),

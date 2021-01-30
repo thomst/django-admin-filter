@@ -1,5 +1,4 @@
 from urllib.parse import urlencode
-from jsonfield import JSONField
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.db import models
@@ -7,14 +6,22 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from django_jsonfield_backport.models import JSONField
 from . import settings as app_settings
+
+
+def default_dict():
+    return dict()
 
 
 class FilterQuery(models.Model):
     name = models.CharField(max_length=128)
     description = models.TextField(blank=True)
     persistent = models.BooleanField(default=False)
-    querydict = JSONField(default=dict())
+    querydict = JSONField(default=default_dict)
     created = models.DateTimeField(auto_now_add=True)
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)

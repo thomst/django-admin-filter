@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'testapp',
     'django_admin_filter',
+    'django_jsonfield_backport',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
