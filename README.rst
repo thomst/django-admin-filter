@@ -36,7 +36,7 @@ Install from pypi.org::
 
 Setup
 =====
-There are three things you need to do to use a custom filter-form for your model
+There are a few things you need to do to use a custom filter-form for your model
 in your admin changelist:
 
 
@@ -46,6 +46,17 @@ Add `django_admin_filter` to your `INSTALLED_APPS`::
       'django_admin_filter',
       ...
    ]
+
+
+Include the django_admin_filter.urls into your project urlpatterns. The
+django_admin_filter.urls must precede the admin.site.urls::
+
+   urlpatterns = [
+      path('admin/', include('django_admin_filter.urls')),
+      path('admin/', admin.site.urls),
+      ...
+   ]
+
 
 
 Add the `CustomFilter` to the `list_filter` of your ModelAdmin::
