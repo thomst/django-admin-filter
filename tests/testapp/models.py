@@ -15,7 +15,7 @@ UNICODE_STRING = 'ℋ/ℌ=ℍ&ℎ?ℏ'
 FIELDS = dict(
     auto = dict(
         field = models.AutoField(primary_key=True),
-        value = lambda i: i,
+        value = lambda i: i + 1,
         filters = {
             'exact': lambda i: str(i),
             'lt': lambda i: str(i),
