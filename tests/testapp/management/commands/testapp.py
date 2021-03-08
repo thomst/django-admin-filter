@@ -25,7 +25,7 @@ def create_test_data():
             'admin@testapp.org',
             'adminpassword')
     except IntegrityError:
-        pass
+        admin = User.objects.get(username='admin')
 
     anyuser, created = User.objects.get_or_create(
         username='anyuser',
