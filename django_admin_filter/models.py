@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urlencode
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -6,15 +7,33 @@ from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
 from django.core.exceptions import FieldError
 from django.core.exceptions import ValidationError
-try:
-    from django.db.models import JSONField
-except ImportError:
-    from django_jsonfield_backport.models import JSONField
+from django.core.serializers.json import DjangoJSONEncoder
 from . import settings as app_settings
 
 
 def default_dict():
     return dict()
+
+
+class JSONField(models.TextField):
+    """
+    A very raw and simple JSONField.
+    (It is only used internally - so we know what we get.)
+    """
+    def from_db_value(self, value, *args):
+        if value is None:
+            return value
+        else:
+            return json.loads(value)
+
+    def to_python(self, value):
+        if type(value) is str:
+            return json.loads(value)
+        else:
+            return value
+
+    def get_prep_value(self, value):
+        return json.dumps(value, cls=DjangoJSONEncoder)
 
 
 class FilterQuery(models.Model):

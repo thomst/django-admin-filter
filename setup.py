@@ -35,7 +35,6 @@ setup(
     install_requires=[
         "Django>=2.2",
         'django-filter>=2.2',
-        'django-jsonfield-backport>=1.0.2',
     ],
     classifiers=[
         dev_status,
