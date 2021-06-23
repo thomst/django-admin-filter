@@ -257,3 +257,10 @@ class FilterViewTest(TestCase):
                 self.assertIn('?filter_id={}'.format(fq.id), content)
                 # edit and delete links should be rendered now
                 self.assertIn('{}{}/'.format(app_settings.URL_PATH, fq.id), content)
+
+    def test_07_valid_content_type_header_in_request(self):
+        self.client.force_login(self.admin)
+        response = self.client.get(self.fq_url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['content-type'].startswith('text/html'))
+

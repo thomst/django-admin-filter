@@ -53,12 +53,12 @@ def setup_filterclass(func):
     def wrapper(self, request, **kwargs):
         params = dict(app_label=kwargs['app_label'], model=kwargs['model'])
         try:
-            self.content_type = ContentType.objects.get(**params)
+            self.content_type_obj = ContentType.objects.get(**params)
         except ContentType.DoesNotExist:
             msg = format_lazy(_("No model '{model}' in app '{app_label}'"), **params)
             raise Http404(msg)
         else:
-            ct_model = self.content_type.model_class()
+            ct_model = self.content_type_obj.model_class()
             self.filterset_class = AdminFilterSet.by_model(ct_model)
         return func(self, request, **kwargs)
     return wrapper
@@ -98,7 +98,7 @@ class BaseFilterQueryView(LoginRequiredMixin, TemplateResponseMixin):
         if 'save' not in self.request.POST :
             self.object.id = None
         self.object.querydict = self.get_querydict()
-        self.object.content_type = self.content_type
+        self.object.content_type = self.content_type_obj
         self.object.persistent = 'save' in self.request.POST or 'save_new' in self.request.POST
         self.object.for_everyone = self.object.for_everyone and self.object.persistent
         self.object.user = self.request.user
