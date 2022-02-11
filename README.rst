@@ -14,7 +14,7 @@ Welcome to django-admin-filter
 
 .. image:: https://img.shields.io/badge/django-2.2%20%7C%203.0%20%7C%203.1%20%7C%203.2-orange
    :target: https://img.shields.io/badge/django-2.2%20%7C%203.0%20%7C%203.1%20%7C%203.2-orange
-   :alt: django: 2.2, 3.0, 3.1, 3.2, 4.0
+   :alt: django: 2.2, 3.0, 3.1, 3.2, 4.0,
 
 .. _django-filter: https://github.com/carltongibson/django-filter
 .. _django-filter-docs: https://django-filter.readthedocs.io/en/master/
