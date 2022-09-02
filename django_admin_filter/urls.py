@@ -1,4 +1,8 @@
-from django.conf.urls import re_path
+try:
+    from django.conf.urls import re_path
+except:
+    # For django 4
+    from django.urls import re_path
 from .views import CreateFilterQueryView, UpdateFilterQueryView
 from . import settings
 
